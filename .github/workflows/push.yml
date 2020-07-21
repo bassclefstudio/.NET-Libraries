@@ -23,6 +23,6 @@ jobs:
     - name: Pack
       run: dotnet pack --configuration Release
     - name: Add GPR Source
-      run: nuget nuget add source -name "GPR" -Source https://nuget.pkg.github.com/bassclefstudio/index.json -Username bassclefstudio -Password ${{ secrets.GITHUB_TOKEN }}
+      run: dotnet nuget add source -name "GPR" -Source https://nuget.pkg.github.com/bassclefstudio/index.json -Username bassclefstudio -Password ${{ secrets.GITHUB_TOKEN }}
     - name: Push
       run: dotnet nuget push "**.nupkg" --source "GPR" -SkipDuplicate
