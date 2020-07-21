@@ -2,6 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.4</TargetFramework>
+    <RepositoryUrl>https://github.com/bassclefstudio/BassClefStudio.NET</RepositoryUrl>
+    <Authors>BassClefStudio</Authors>
+    <Company>BassClefStudio</Company>
+    <Description>Contains helper classes and extension methods for creating .NET projects.</Description>
   </PropertyGroup>
 
 </Project>
