@@ -48,7 +48,7 @@ namespace BassClefStudio.NET.Core
         }
 
         /// <summary>
-        /// Runs the <see cref="Task"/> on the background thread in a try/catch block and calls <see cref="ExceptionAction"/> only if an <see cref="Exception"/> of type <typeparamref name="T"/> is thrown.
+        /// Runs the attached <see cref="Task"/> on the background thread in a try/catch block and calls <see cref="ExceptionAction"/> only if an <see cref="Exception"/> of type <typeparamref name="T"/> is thrown.
         /// </summary>
         public async Task RunTaskAsync<T>() where T : Exception
         {
