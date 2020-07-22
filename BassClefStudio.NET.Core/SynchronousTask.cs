@@ -33,7 +33,7 @@ namespace BassClefStudio.NET.Core
         }
 
         /// <summary>
-        /// Runs the <see cref="Task"/> on the background thread in a try/catch block and calls <see cref="ExceptionAction"/> if an <see cref="Exception"/> is thrown.
+        /// Runs the attached <see cref="Task"/> on the background thread in a try/catch block and calls <see cref="ExceptionAction"/> if an <see cref="Exception"/> is thrown.
         /// </summary>
         public async Task RunTaskAsync()
         {
