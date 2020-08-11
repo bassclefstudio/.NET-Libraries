@@ -17,6 +17,11 @@ namespace BassClefStudio.NET.Core
         public Func<Task> GetMyTask { get; }
 
         /// <summary>
+        /// A <see cref="bool"/> value indicating whether multiple calls to a <see cref="RunTaskAsync"/> or <see cref="RunTask"/> method while the task is running will use the same instance of the task (true), or create a different instance each time (false).
+        /// </summary>
+        public bool IsLocked { get; }
+
+        /// <summary>
         /// The <see cref="Action"/> to take if the task throws an <see cref="Exception"/>.
         /// </summary>
         public Action<Exception> ExceptionAction { get; }
@@ -26,10 +31,12 @@ namespace BassClefStudio.NET.Core
         /// </summary>
         /// <param name="myTask">The task to attach.</param>
         /// <param name="exceptionAction">The action to take if the <see cref="Task"/> throws an <see cref="Exception"/>. Defaults to <see cref="DefaultExceptionAction(Exception)"/>.</param>
-        public SynchronousTask(Func<Task> myTask, Action<Exception> exceptionAction = null)
+        /// <param name="isLocked">A <see cref="bool"/> value indicating whether multiple calls to a <see cref="RunTaskAsync"/> or <see cref="RunTask"/> method while the task is running will use the same instance of the task (true), or create a different instance each time (false).</param>
+        public SynchronousTask(Func<Task> myTask, Action<Exception> exceptionAction = null, bool isLocked = false)
         {
             GetMyTask = myTask;
             ExceptionAction = exceptionAction ?? DefaultExceptionAction;
+            IsLocked = isLocked;
         }
 
         /// <summary>
@@ -37,13 +44,21 @@ namespace BassClefStudio.NET.Core
         /// </summary>
         public async Task RunTaskAsync()
         {
-            try
+            var task = GetTaskWithLock(GetMyTask);
+            if (task != null)
             {
-                await GetMyTask();
-            }
-            catch (Exception ex)
-            {
-                ExceptionAction(ex);
+                try
+                {
+                    await task;
+                }
+                catch (Exception ex)
+                {
+                    ExceptionAction(ex);
+                }
+                finally
+                {
+                    CompleteTask();
+                }
             }
         }
 
@@ -52,13 +67,21 @@ namespace BassClefStudio.NET.Core
         /// </summary>
         public async Task RunTaskAsync<T>() where T : Exception
         {
-            try
+            var task = GetTaskWithLock(GetMyTask);
+            if (task != null)
             {
-                await GetMyTask();
-            }
-            catch (T ex)
-            {
-                ExceptionAction(ex);
+                try
+                {
+                    await task;
+                }
+                catch (T ex)
+                {
+                    ExceptionAction(ex);
+                }
+                finally
+                {
+                    CompleteTask();
+                }
             }
         }
 
@@ -69,6 +92,39 @@ namespace BassClefStudio.NET.Core
         {
             await Task.Run(async () =>
                 await RunTaskAsync());
+        }
+
+        private Task lockedTask = null;
+        private object taskLock = new object();
+        private Task GetTaskWithLock(Func<Task> getTask)
+        {
+            if (IsLocked)
+            {
+                lock (taskLock)
+                {
+                    if (lockedTask == null)
+                    {
+                        lockedTask = getTask();
+                    }
+                }
+
+                return lockedTask;
+            }
+            else
+            {
+                return getTask();
+            }
+        }
+
+        private void CompleteTask()
+        {
+            lock (taskLock)
+            {
+                if (IsLocked)
+                {
+                    lockedTask = null;
+                }
+            }
         }
 
         public static void DefaultExceptionAction(Exception ex)
