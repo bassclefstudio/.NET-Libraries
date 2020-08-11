@@ -6,6 +6,8 @@
     <Authors>BassClefStudio</Authors>
     <Company>BassClefStudio</Company>
     <Description>Contains helper classes and extension methods for creating .NET projects.</Description>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
 </Project>
