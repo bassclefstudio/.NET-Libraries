@@ -26,6 +26,6 @@ jobs:
     - name: Test
       run: dotnet test --no-restore --verbosity normal
     - name: Pack
-      run: dotnet pack --configuration Release
+      run: dotnet pack --configuration Debug
     - name: Push
       run: dotnet nuget push "**.nupkg" --source "GPR" --skip-duplicate
