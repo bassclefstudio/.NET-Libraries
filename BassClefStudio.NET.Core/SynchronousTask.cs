@@ -32,7 +32,7 @@ namespace BassClefStudio.NET.Core
         /// <param name="myTask">The task to attach.</param>
         /// <param name="exceptionAction">The action to take if the <see cref="Task"/> throws an <see cref="Exception"/>. Defaults to <see cref="DefaultExceptionAction(Exception)"/>.</param>
         /// <param name="isLocked">A <see cref="bool"/> value indicating whether multiple calls to a <see cref="RunTaskAsync"/> or <see cref="RunTask"/> method while the task is running will use the same instance of the task (true), or create a different instance each time (false).</param>
-        public SynchronousTask(Func<Task> myTask, Action<Exception> exceptionAction = null, bool isLocked = true)
+        public SynchronousTask(Func<Task> myTask, Action<Exception> exceptionAction = null, bool isLocked = false)
         {
             GetMyTask = myTask;
             ExceptionAction = exceptionAction ?? DefaultExceptionAction;
@@ -95,13 +95,17 @@ namespace BassClefStudio.NET.Core
         }
 
         private Task lockedTask = null;
+        private object taskLock = new object();
         private Task GetTaskWithLock(Func<Task> getTask)
         {
             if (IsLocked)
             {
-                if (lockedTask == null)
+                lock (taskLock)
                 {
-                    lockedTask = getTask();
+                    if (lockedTask == null)
+                    {
+                        lockedTask = getTask();
+                    }
                 }
 
                 return lockedTask;
@@ -109,6 +113,17 @@ namespace BassClefStudio.NET.Core
             else
             {
                 return getTask();
+            }
+        }
+
+        private void CompleteTask()
+        {
+            lock (taskLock)
+            {
+                if (IsLocked)
+                {
+                    lockedTask = null;
+                }
             }
         }
 
