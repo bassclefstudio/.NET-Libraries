@@ -28,7 +28,7 @@ jobs:
     - name: Publish .Core Nuget
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
-          PROJECT_FILE_PATH: '/BassClefStudio.NET.Core/BassClefStudio.NET.Core.csproj'
+          PROJECT_FILE_PATH: BassClefStudio.NET.Core/BassClefStudio.NET.Core.csproj
           NUGET_SOURCE: https://nuget.pkg.github.com/bassclefstudio/index.json
           NUGET_KEY: ${{ secrets.GITHUB_TOKEN }}
           INCLUDE_SYMBOLS: true
