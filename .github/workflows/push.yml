@@ -29,8 +29,7 @@ jobs:
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
           PROJECT_FILE_PATH: BassClefStudio.NET.Core/BassClefStudio.NET.Core.csproj
-          NUGET_SOURCE: https://nuget.pkg.github.com/bassclefstudio/index.json
-          NUGET_KEY: ${{ secrets.GITHUB_TOKEN }}
+          NUGET_SOURCE: GPR
           INCLUDE_SYMBOLS: true
 #    - name: Pack
 #      run: dotnet pack --no-build --include-source --include-symbols
