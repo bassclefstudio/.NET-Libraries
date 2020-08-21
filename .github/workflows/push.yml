@@ -25,13 +25,7 @@ jobs:
       run: dotnet build --configuration Debug --no-restore
     - name: Test
       run: dotnet test --no-restore --verbosity normal
-    - name: Publish .Core Nuget
-      uses: brandedoutcast/publish-nuget@v2.5.2
-      with:
-          PROJECT_FILE_PATH: BassClefStudio.NET.Core/BassClefStudio.NET.Core.csproj
-          NUGET_SOURCE: GPR
-          INCLUDE_SYMBOLS: true
-#    - name: Pack
-#      run: dotnet pack --no-build --include-source --include-symbols
-#    - name: Push
-#      run: dotnet nuget push "**.nupkg" --source "GPR" --skip-duplicate
+    - name: Pack
+      run: dotnet pack --no-build --include-source --include-symbols -p:SymbolPackageFormat=snupkg
+    - name: Push
+      run: dotnet nuget push "**.nupkg" --source "GPR" --skip-duplicate
