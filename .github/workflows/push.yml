@@ -22,10 +22,17 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build --configuration Debug --no-restore
     - name: Test
       run: dotnet test --no-restore --verbosity normal
-    - name: Pack
-      run: dotnet pack --configuration Debug --include-source --include-symbols
-    - name: Push
-      run: dotnet nuget push "**.nupkg" --source "GPR" --skip-duplicate
+    - name: Publish Nuget
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      with:
+          PROJECT_FILE_PATH: '*/*.csproj'
+          NUGET_SOURCE: https://nuget.pkg.github.com/bassclefstudio/index.json
+          NUGET_KEY: ${{ secrets.GITHUB_TOKEN }}
+          INCLUDE_SYMBOLS: true
+#    - name: Pack
+#      run: dotnet pack --no-build --include-source --include-symbols
+#    - name: Push
+#      run: dotnet nuget push "**.nupkg" --source "GPR" --skip-duplicate
