@@ -127,6 +127,9 @@ namespace BassClefStudio.NET.Core
             }
         }
 
+        /// <summary>
+        /// A default action for when a <see cref="SynchronousTask"/> throws an exception, which writes to the debug console and throws the <see cref="Exception"/>.
+        /// </summary>
         public static void DefaultExceptionAction(Exception ex)
         {
             Debug.WriteLine($"Exception thrown in synchronous task:\r\n{ex}");
