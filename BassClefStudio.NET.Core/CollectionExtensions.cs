@@ -7,6 +7,8 @@ namespace BassClefStudio.NET.Core
 {
     public static class CollectionExtensions
     {
+        #region RangeActions
+
         /// <summary>
         /// Adds a collection of items to an <see cref="IList{T}"/>.
         /// </summary>
@@ -32,6 +34,9 @@ namespace BassClefStudio.NET.Core
                 list.Remove(item);
             }
         }
+
+        #endregion
+        #region Sync
 
         private static Func<T1,T2, bool> GetEqualityFunc<T1,T2>(Func<T1,T2, bool> func)
         {
@@ -115,5 +120,53 @@ namespace BassClefStudio.NET.Core
                 list.AddRange(toAdd.Select(a => createFunc(a)));
             }
         }
+
+        #endregion
+        #region Grouping
+
+        public static IEnumerable<IEnumerable<T>> ChunkBy<T>(this IEnumerable<T> source, int chunkSize)
+        {
+            return source
+                .Select((x, i) => new { Index = i, Value = x })
+                .GroupBy(x => x.Index / chunkSize)
+                .Select(x => x.Select(v => v.Value));
+        }
+
+        #endregion
+        #region Transpose
+
+        public static IEnumerable<IEnumerable<T>> Transpose<T>(this IEnumerable<IEnumerable<T>> source)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+
+            if (!source.Any())
+            {
+                return Enumerable.Empty<IEnumerable<T>>();
+            }
+
+            return TransposeCore(source);
+        }
+
+        static IEnumerable<IEnumerable<T>> TransposeCore<T>(this IEnumerable<IEnumerable<T>> source)
+        {
+            var enumerators = source.Select(x => x.GetEnumerator()).ToArray();
+            try
+            {
+                while (enumerators.All(x => x.MoveNext()))
+                {
+                    yield return enumerators.Select(x => x.Current).ToArray();
+                }
+            }
+            finally
+            {
+                foreach (var enumerator in enumerators)
+                    enumerator.Dispose();
+            }
+        }
+
+        #endregion
     }
 }
