@@ -8,6 +8,7 @@
     <Description>Contains helper classes and extension methods for creating .NET projects.</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Version>1.1.1</Version>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
 </Project>

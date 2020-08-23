@@ -5,6 +5,7 @@
     <Authors>BassClefStudio</Authors>
     <RepositoryUrl>https://github.com/bassclefstudio/BassClefStudio.NET</RepositoryUrl>
     <Description>A library for managing the connection between data stores (web APIs, files) and .NET objects.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
