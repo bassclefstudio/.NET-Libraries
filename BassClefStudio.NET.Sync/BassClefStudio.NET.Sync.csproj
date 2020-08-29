@@ -3,8 +3,10 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.4</TargetFramework>
     <Authors>BassClefStudio</Authors>
-    <RepositoryUrl>https://github.com/bassclefstudio/BassClefStudio.NET</RepositoryUrl>
+    <RepositoryUrl>https://github.com/bassclefstudio/.Net-Libraries</RepositoryUrl>
     <Description>A library for managing the connection between data stores (web APIs, files) and .NET objects.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Version>1.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
