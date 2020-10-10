@@ -140,6 +140,9 @@ namespace BassClefStudio.NET.Core
         }
     }
 
+    /// <summary>
+    /// Contains extension methods for awaiting collections of <see cref="Task"/>s.
+    /// </summary>
     public static class ParallelTaskExtensions
     {
         /// <summary>

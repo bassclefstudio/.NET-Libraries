@@ -43,7 +43,14 @@ namespace BassClefStudio.NET.Sync
         /// <inheritdoc/>
         public async Task PushAsync(ISyncInfo<ObservableCollection<IKeyedSyncItem<TItem, TKey>>> info = null)
         {
-            await Item.Select(i => i.PushAsync()).RunParallelAsync();
+            if (info is ISyncInfo<TItem> syncInfo)
+            {
+                await Item.Select(i => i.PushAsync(syncInfo)).RunParallelAsync();
+            }
+            else
+            {
+                await Item.Select(i => i.PushAsync()).RunParallelAsync();
+            }
         }
     }
 }

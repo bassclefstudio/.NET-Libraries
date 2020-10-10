@@ -10,7 +10,7 @@ namespace BassClefStudio.NET.Sync
     {
         private T item;
         /// <inheritdoc/>
-        public T Item { get => item; protected set { Set(ref item, value); ItemChanged?.Invoke(this, new EventArgs()); } }
+        public T Item { get => item; set { Set(ref item, value); ItemChanged?.Invoke(this, new EventArgs()); } }
 
         public event EventHandler ItemChanged;
 
@@ -22,12 +22,21 @@ namespace BassClefStudio.NET.Sync
         /// </summary>
         public ILink<T> Link { get; set; }
 
+        /// <summary>
+        /// Creates a new <see cref="SyncItem{T}"/>.
+        /// </summary>
+        /// <param name="item">The currently cached or created <typeparamref name="T"/> item.</param>
+        /// <param name="link">An <see cref="ILink{T}"/> connecting this <see cref="SyncItem{T}"/> to a remote data source.</param>
         public SyncItem(T item, ILink<T> link = null)
         {
             Item = item;
             Link = link;
         }
 
+        /// <summary>
+        /// Creates a new <see cref="SyncItem{T}"/>.
+        /// </summary>
+        /// <param name="link">An <see cref="ILink{T}"/> connecting this <see cref="SyncItem{T}"/> to a remote data source.</param>
         public SyncItem(ILink<T> link = null)
         {
             Link = link;
@@ -36,18 +45,19 @@ namespace BassClefStudio.NET.Sync
         /// <inheritdoc/>
         public async Task UpdateAsync(ISyncInfo<T> info = null)
         {
-            await Link.UpdateAsync(Item, info);
+            await Link.UpdateAsync(this, info);
         }
 
         /// <inheritdoc/>
         public async Task PushAsync(ISyncInfo<T> info = null)
         {
-            await Link.PushAsync(Item, info);
+            await Link.PushAsync(this, info);
         }
     }
 
     public class KeyedSyncItem<T, TKey> : SyncItem<T>, IKeyedSyncItem<T, TKey> where T : IIdentifiable<TKey> where TKey : IEquatable<TKey>
     {
+        /// <inheritdoc/>
         public TKey Id { get; private set; }
 
         public KeyedSyncItem(T item, ILink<T> link = null) : base(item, link)
