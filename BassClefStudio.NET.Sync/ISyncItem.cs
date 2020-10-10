@@ -16,7 +16,7 @@ namespace BassClefStudio.NET.Sync
         /// <summary>
         /// The locally cached <typeparamref name="T"/> item.
         /// </summary>
-        T Item { get; }
+        T Item { get; set; }
 
         /// <summary>
         /// A <see cref="bool"/> indicating whether the <see cref="Item"/> has been initialized from the source.
