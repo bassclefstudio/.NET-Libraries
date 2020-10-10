@@ -7,6 +7,8 @@ namespace BassClefStudio.NET.Core
 {
     public static class CollectionExtensions
     {
+        #region RangeActions
+
         /// <summary>
         /// Adds a collection of items to an <see cref="IList{T}"/>.
         /// </summary>
@@ -32,6 +34,9 @@ namespace BassClefStudio.NET.Core
                 list.Remove(item);
             }
         }
+
+        #endregion
+        #region Sync
 
         private static Func<T1,T2, bool> GetEqualityFunc<T1,T2>(Func<T1,T2, bool> func)
         {
@@ -99,7 +104,7 @@ namespace BassClefStudio.NET.Core
         /// <param name="list">This <see cref="IList{T}"/>, which will be synchronized.</param>
         /// <param name="newData">A collection of new data to use to update <paramref name="list"/>.</param>
         /// <param name="equalityFunc">A function that returns a <see cref="bool"/> indicating whether an item of type <typeparamref name="T1"/> and an item of type <typeparamref name="T2"/> are equal for the purposes of the operation.</param>
-        /// <param name="replaceFunc">A function that, given the item of type <typeparamref name="T2"/> in the <paramref name="newData"/>, creates a new item of type <typeparamref name="T1"/> to include in <paramref name="list"/>.</param>
+        /// <param name="createFunc">A function that, given the item of type <typeparamref name="T2"/> in the <paramref name="newData"/>, creates a new item of type <typeparamref name="T1"/> to include in <paramref name="list"/>.</param>
         /// <param name="isDestructive">A <see cref="bool"/> indicating if items should be removed from <paramref name="list"/> if they do not occur in <paramref name="newData"/>.</param>
         public static void Sync<T1, T2>(this IList<T1> list, IEnumerable<T2> newData, Func<T1, T2, bool> equalityFunc, Func<T2, T1> createFunc = null, bool isDestructive = true)
         {
@@ -115,7 +120,7 @@ namespace BassClefStudio.NET.Core
                 list.AddRange(toAdd.Select(a => createFunc(a)));
             }
         }
-
+      
         /// <summary>
         /// Synchronizes the items of an <see cref="IList{T}"/> with the items in another <see cref="IEnumerable{T}"/> by adding and removing related items, using <see cref="IIdentifiable{T}"/> as the means of determining equality.
         /// </summary>
@@ -140,5 +145,61 @@ namespace BassClefStudio.NET.Core
         /// <param name="isDestructive">A <see cref="bool"/> indicating if items should be removed from <paramref name="list"/> if they do not occur in <paramref name="newData"/>.</param>
         public static void Sync<T1, TKey>(this IList<T1> list, IEnumerable<TKey> newData, Func<TKey, T1> createFunc = null, bool isDestructive = true) where T1 : IIdentifiable<TKey> where TKey : IEquatable<TKey>
          => Sync(list, newData, (t1, t2) => t1.Id.Equals(t2), createFunc, isDestructive);
+      
+        #endregion
+        #region Grouping
+
+        /// <summary>
+        /// Takes an <see cref="IEnumerable{T}"/> and returns a collection of <see cref="IEnumerable{T}"/>s with each containing at most <paramref name="chunkSize"/> items from the original collection.
+        /// </summary>
+        /// <param name="source">The source collection to group.</param>
+        /// <param name="chunkSize">The maximum size of the chunks taken.</param>
+        public static IEnumerable<IEnumerable<T>> ChunkBy<T>(this IEnumerable<T> source, int chunkSize)
+        {
+            return source
+                .Select((x, i) => new { Index = i, Value = x })
+                .GroupBy(x => x.Index / chunkSize)
+                .Select(x => x.Select(v => v.Value));
+        }
+
+        #endregion
+        #region Transpose
+
+        /// <summary>
+        /// Swaps the indices for an <see cref="IEnumerable{T}"/> of <see cref="IEnumerable{T}"/>s and returns the result as a different <see cref="IEnumerable{T}"/> of <see cref="IEnumerable{T}"/>s.
+        /// </summary>
+        public static IEnumerable<IEnumerable<T>> Transpose<T>(this IEnumerable<IEnumerable<T>> source)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+
+            if (!source.Any())
+            {
+                return Enumerable.Empty<IEnumerable<T>>();
+            }
+
+            return TransposeCore(source);
+        }
+
+        static IEnumerable<IEnumerable<T>> TransposeCore<T>(this IEnumerable<IEnumerable<T>> source)
+        {
+            var enumerators = source.Select(x => x.GetEnumerator()).ToArray();
+            try
+            {
+                while (enumerators.All(x => x.MoveNext()))
+                {
+                    yield return enumerators.Select(x => x.Current).ToArray();
+                }
+            }
+            finally
+            {
+                foreach (var enumerator in enumerators)
+                    enumerator.Dispose();
+            }
+        }
+
+        #endregion
     }
 }
