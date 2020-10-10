@@ -6,74 +6,70 @@ using System.Threading.Tasks;
 
 namespace BassClefStudio.NET.Sync
 {
-    /// <summary>
-    /// Represents an item in the object model of type <typeparamref name="T"/> that is connected and can be synced using a given <see cref="ILink{T}"/>.
-    /// </summary>
-    /// <typeparam name="T">The type of item stored in the <see cref="SyncItem{T}"/>.</typeparam>
-    public class SyncItem<T> : Observable
+    public class SyncItem<T> : Observable, ISyncItem<T>
     {
         private T item;
-        /// <summary>
-        /// The locally stored instance of the item, of type <typeparamref name="T"/>.
-        /// </summary>
-        public T Item
-        {
-            get => item;
-            set
-            {
-                Set(ref item, value);
-                Initialized = item != null;
-                ItemChanged?.Invoke(this, new EventArgs());
-            }
-        }
+        /// <inheritdoc/>
+        public T Item { get => item; protected set { Set(ref item, value); ItemChanged?.Invoke(this, new EventArgs()); } }
 
-        private ILink<T> itemLink;
-        /// <summary>
-        /// The <see cref="ILink{T}"/> between the data store and the <see cref="Item"/>.
-        /// </summary>
-        public ILink<T> ItemLink
-        {
-            get => itemLink;
-            set
-            {
-                Set(ref itemLink, value);
-            }
-        }
-
-        private bool initialized;
-        /// <summary>
-        /// A <see cref="bool"/> value indicating whether the <see cref="Item"/> property has a stored value, either created locally or synced from the data store.
-        /// </summary>
-        public bool Initialized { get => initialized; private set => Set(ref initialized, value); }
-
-        /// <summary>
-        /// An event that is fired whenever an item is changed.
-        /// </summary>
         public event EventHandler ItemChanged;
 
-        /// <summary>
-        /// Creates a new <see cref="SyncItem{T}"/> from the given <see cref="ILink{T}"/>.
-        /// </summary>
-        /// <param name="link">The link between the stored <see cref="Item"/> and the related item in the data store.</param>
-        public SyncItem(ILink<T> link = null)
-        {
-            ItemLink = link;
-        }
-        
-        /// <summary>
-        /// Saves the value in <see cref="Item"/> to the data store via the <see cref="ItemLink"/>.
-        /// </summary>
-        public async Task SaveAsync()
-        {
-            await ItemLink?.SaveItem(Item);
-        }
+        /// <inheritdoc/>
+        public bool Initialized => Item != null;
 
         /// <summary>
-        /// Retrieves the stored value from the <see cref="ItemLink"/> and sets the <see cref="Item"/> property.
+        /// The <see cref="ILink{T}"/> to the data store.
         /// </summary>
-        public async Task UpdateAsync()
+        public ILink<T> Link { get; set; }
+
+        public SyncItem(T item, ILink<T> link = null)
         {
-            Item = await ItemLink?.GetItem();
+            Item = item;
+            Link = link;
+        }
+
+        public SyncItem(ILink<T> link = null)
+        {
+            Link = link;
+        }
+
+        /// <inheritdoc/>
+        public async Task UpdateAsync(ISyncInfo<T> info = null)
+        {
+            await Link.UpdateAsync(Item, info);
+        }
+
+        /// <inheritdoc/>
+        public async Task PushAsync(ISyncInfo<T> info = null)
+        {
+            await Link.PushAsync(Item, info);
+        }
+    }
+
+    public class KeyedSyncItem<T, TKey> : SyncItem<T>, IKeyedSyncItem<T, TKey> where T : IIdentifiable<TKey> where TKey : IEquatable<TKey>
+    {
+        public TKey Id { get; private set; }
+
+        public KeyedSyncItem(T item, ILink<T> link = null) : base(item, link)
+        {
+            ItemChanged += KeyedItemChanged;
+        }
+
+        public KeyedSyncItem(ILink<T> link = null) : base(link)
+        {
+            ItemChanged += KeyedItemChanged;
+        }
+
+        private void KeyedItemChanged(object sender, EventArgs e)
+        {
+            if(Item != null)
+            {
+                Id = Item.Id;
+            }
+            else
+            {
+                Id = default(TKey);
+            }
         }
     }
 }

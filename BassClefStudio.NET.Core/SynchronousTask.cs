@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -128,12 +130,55 @@ namespace BassClefStudio.NET.Core
         }
 
         /// <summary>
-        /// A default action for when a <see cref="SynchronousTask"/> throws an exception, which writes to the debug console and throws the <see cref="Exception"/>.
+        /// The default exception action for a <see cref="SynchronousTask"/> - writes the exception to the debug console and then throws the exception.
         /// </summary>
+        /// <param name="ex">The exception caught by the <see cref="SynchronousTask"/>.</param>
         public static void DefaultExceptionAction(Exception ex)
         {
             Debug.WriteLine($"Exception thrown in synchronous task:\r\n{ex}");
             throw ex;
+        }
+    }
+
+    public static class ParallelTaskExtensions
+    {
+        /// <summary>
+        /// Starts and awaits a collection of <see cref="Task"/>s in parallel.
+        /// </summary>
+        /// <param name="tasks">The collection of <see cref="Task"/>s.</param>
+        public static async Task RunParallelAsync(this IEnumerable<Func<Task>> tasks)
+            => await RunParallelAsync(tasks.Select(t => t()));
+        /// <summary>
+        /// Awaits a collection of <see cref="Task"/>s in parallel.
+        /// </summary>
+        /// <param name="tasks">The collection of <see cref="Task"/>s.</param>
+        public static async Task RunParallelAsync(this IEnumerable<Task> tasks)
+        {
+            foreach (var task in tasks)
+            {
+                await task;
+            }
+        }
+
+        /// <summary>
+        /// Starts and awaits a collection of <see cref="Task"/>s in parallel, returning an <see cref="IEnumerable{T}"/> of the results.
+        /// </summary>
+        /// <param name="tasks">The collection of <see cref="Task"/>s.</param>
+        public static async Task<IEnumerable<T>> RunParallelAsync<T>(this IEnumerable<Func<Task<T>>> tasks)
+            => await RunParallelAsync(tasks.Select(t => t()));
+        /// <summary>
+        /// Awaits a collection of <see cref="Task"/>s in parallel, returning an <see cref="IEnumerable{T}"/> of the results.
+        /// </summary>
+        /// <param name="tasks">The collection of <see cref="Task"/>s.</param>
+        public static async Task<IEnumerable<T>> RunParallelAsync<T>(this IEnumerable<Task<T>> tasks)
+        {
+            List<T> results = new List<T>();
+            foreach (var task in tasks)
+            {
+                results.Add(await task);
+            }
+
+            return results;
         }
     }
 }
