@@ -6,7 +6,7 @@
     <RepositoryUrl>https://github.com/bassclefstudio/.Net-Libraries</RepositoryUrl>
     <Description>A library for managing the connection between data stores (web APIs, files) and .NET objects.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>1.3.0</Version>
+    <Version>1.3.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
