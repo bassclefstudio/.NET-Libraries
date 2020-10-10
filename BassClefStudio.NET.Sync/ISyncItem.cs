@@ -34,6 +34,7 @@ namespace BassClefStudio.NET.Sync
         Task PushAsync(ISyncInfo<T> info = null);
     }
 
+
     public interface IKeyedSyncItem<T, TKey> : ISyncItem<T>, IIdentifiable<TKey> where T : IIdentifiable<TKey> where TKey : IEquatable<TKey>
     { }
 
