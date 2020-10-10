@@ -20,16 +20,24 @@ namespace BassClefStudio.NET.Sync
         IEnumerable<TKey> GetKeys();
     }
 
-    public abstract class SyncCollection<TItem, TKey> : ISyncCollection<IKeyedSyncItem<TItem, TKey>> where TItem : IIdentifiable<TKey> where TKey : IEquatable<TKey>
+    public abstract class SyncCollection<TItem, TKey> : Observable, ISyncCollection<IKeyedSyncItem<TItem, TKey>> where TItem : IIdentifiable<TKey> where TKey : IEquatable<TKey>
     {
+        private ObservableCollection<IKeyedSyncItem<TItem, TKey>> item;
         /// <inheritdoc/>
-        public ObservableCollection<IKeyedSyncItem<TItem, TKey>> Item { get; }
+        public ObservableCollection<IKeyedSyncItem<TItem, TKey>> Item { get => item; set => Set(ref item, value); }
 
         /// <inheritdoc/>
         public bool Initialized => true;
 
+        /// <summary>
+        /// Gets an <see cref="ILink{T}"/> connection for a child item with the given key.
+        /// </summary>
+        /// <param name="key">The <typeparamref name="TKey"/> key of the item.</param>
         protected abstract ILink<TItem> GetLink(TKey key);
 
+        /// <summary>
+        /// Gets the generic collection info which is used to sync and build the collection.
+        /// </summary>
         protected abstract Task<ISyncCollectionInfo<TItem, TKey>> GetCollectionInfo();
 
         /// <inheritdoc/>
