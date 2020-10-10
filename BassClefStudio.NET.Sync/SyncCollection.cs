@@ -20,14 +20,28 @@ namespace BassClefStudio.NET.Sync
         IEnumerable<TKey> GetKeys();
     }
 
+    /// <summary>
+    /// Represents a synced keyed <see cref="ISyncCollection{T}"/> of <see cref="ISyncItem{T}"/>s of type <typeparamref name="TItem"/>.
+    /// </summary>
+    /// <typeparam name="TItem">The type of items in the collection.</typeparam>
+    /// <typeparam name="TKey">The type of the key used to sync each item in the collection.</typeparam>
     public abstract class SyncCollection<TItem, TKey> : Observable, ISyncCollection<IKeyedSyncItem<TItem, TKey>> where TItem : IIdentifiable<TKey> where TKey : IEquatable<TKey>
     {
         private ObservableCollection<IKeyedSyncItem<TItem, TKey>> item;
         /// <inheritdoc/>
         public ObservableCollection<IKeyedSyncItem<TItem, TKey>> Item { get => item; set => Set(ref item, value); }
 
+        private bool isLoading;
         /// <inheritdoc/>
-        public bool Initialized => true;
+        public bool IsLoading { get => isLoading; set => Set(ref isLoading, value); }
+
+        /// <summary>
+        /// Creates a new empty <see cref="SyncCollection{TItem, TKey}"/>.
+        /// </summary>
+        public SyncCollection()
+        {
+            Item = new ObservableCollection<IKeyedSyncItem<TItem, TKey>>();
+        }
 
         /// <summary>
         /// Gets an <see cref="ILink{T}"/> connection for a child item with the given key.
@@ -43,14 +57,21 @@ namespace BassClefStudio.NET.Sync
         /// <inheritdoc/>
         public async Task UpdateAsync(ISyncInfo<ObservableCollection<IKeyedSyncItem<TItem, TKey>>> info = null)
         {
+            IsLoading = true;
             var collectionInfo = await GetCollectionInfo();
+            if(Item == null)
+            {
+                Item = new ObservableCollection<IKeyedSyncItem<TItem, TKey>>();
+            }
             Item.Sync(collectionInfo.GetKeys(), i => new KeyedSyncItem<TItem, TKey>(GetLink(i)));
             await Item.Select(i => i.UpdateAsync(collectionInfo)).RunParallelAsync();
+            IsLoading = false;
         }
 
         /// <inheritdoc/>
         public async Task PushAsync(ISyncInfo<ObservableCollection<IKeyedSyncItem<TItem, TKey>>> info = null)
         {
+            IsLoading = true;
             if (info is ISyncInfo<TItem> syncInfo)
             {
                 await Item.Select(i => i.PushAsync(syncInfo)).RunParallelAsync();
@@ -59,6 +80,7 @@ namespace BassClefStudio.NET.Sync
             {
                 await Item.Select(i => i.PushAsync()).RunParallelAsync();
             }
+            IsLoading = false;
         }
     }
 }

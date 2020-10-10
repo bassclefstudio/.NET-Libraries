@@ -19,9 +19,9 @@ namespace BassClefStudio.NET.Sync
         T Item { get; set; }
 
         /// <summary>
-        /// A <see cref="bool"/> indicating whether the <see cref="Item"/> has been initialized from the source.
+        /// A <see cref="bool"/> indicating whether the <see cref="Item"/> is currently being updated from the source.
         /// </summary>
-        bool Initialized { get; }
+        bool IsLoading { get; }
 
         /// <summary>
         /// Updates <see cref="Item"/> with the latest content from the data source.
