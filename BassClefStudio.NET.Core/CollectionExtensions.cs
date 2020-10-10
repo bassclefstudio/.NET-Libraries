@@ -121,11 +121,24 @@ namespace BassClefStudio.NET.Core
         /// </summary>
         /// <typeparam name="T1">The type of the items in <paramref name="list"/>.</typeparam>
         /// <typeparam name="T2">The type of the items in <paramref name="newData"/>.</typeparam>
+        /// <typeparam name="TKey">The type of the unique key between the two <see cref="IIdentifiable{T}"/> collections of types <typeparamref name="T1"/> and <typeparamref name="T2"/>.</typeparam>
         /// <param name="list">This <see cref="IList{T}"/>, which will be synchronized.</param>
         /// <param name="newData">A collection of new data to use to update <paramref name="list"/>.</param>
         /// <param name="replaceFunc">A function that, given the item of type <typeparamref name="T2"/> in the <paramref name="newData"/>, creates a new item of type <typeparamref name="T1"/> to include in <paramref name="list"/>.</param>
         /// <param name="isDestructive">A <see cref="bool"/> indicating if items should be removed from <paramref name="list"/> if they do not occur in <paramref name="newData"/>.</param>
         public static void Sync<T1, T2, TKey>(this IList<T1> list, IEnumerable<T2> newData, Func<T2, T1> createFunc = null, bool isDestructive = true) where T1 : IIdentifiable<TKey> where T2 : IIdentifiable<TKey> where TKey : IEquatable<TKey>
          => Sync(list, newData, (t1, t2) => t1.Id.Equals(t2.Id), createFunc, isDestructive);
+
+        /// <summary>
+        /// Synchronizes the items of an <see cref="IList{T}"/> with the items in another <see cref="IEnumerable{T}"/> by adding and removing related items, using <see cref="IIdentifiable{T}"/> as the means of determining equality.
+        /// </summary>
+        /// <typeparam name="T1">The type of the items in <paramref name="list"/>.</typeparam>
+        /// <typeparam name="TKey">The type of the items in <paramref name="newData"/> and <see cref="IIdentifiable{T}.Id"/> of type <typeparamref name="T1"/>.</typeparam>
+        /// <param name="list">This <see cref="IList{T}"/>, which will be synchronized.</param>
+        /// <param name="newData">A collection of new data to use to update <paramref name="list"/>.</param>
+        /// <param name="replaceFunc">A function that, given the item of type <typeparamref name="T2"/> in the <paramref name="newData"/>, creates a new item of type <typeparamref name="T1"/> to include in <paramref name="list"/>.</param>
+        /// <param name="isDestructive">A <see cref="bool"/> indicating if items should be removed from <paramref name="list"/> if they do not occur in <paramref name="newData"/>.</param>
+        public static void Sync<T1, TKey>(this IList<T1> list, IEnumerable<TKey> newData, Func<TKey, T1> createFunc = null, bool isDestructive = true) where T1 : IIdentifiable<TKey> where TKey : IEquatable<TKey>
+         => Sync(list, newData, (t1, t2) => t1.Id.Equals(t2), createFunc, isDestructive);
     }
 }
