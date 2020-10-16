@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,7 +12,7 @@ namespace BassClefStudio.NET.Sync
     /// Represents an object of type <typeparamref name="T"/> cached locally and synced with a remote data source (such as an API, file, or database).
     /// </summary>
     /// <typeparam name="T">The type of the item to sync.</typeparam>
-    public interface ISyncItem<T>
+    public interface ISyncItem<T> : INotifyPropertyChanged
     {
         /// <summary>
         /// The locally cached <typeparamref name="T"/> item.
