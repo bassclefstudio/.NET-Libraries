@@ -38,6 +38,6 @@ namespace BassClefStudio.NET.Sync
     public interface IKeyedSyncItem<T, TKey> : ISyncItem<T>, IIdentifiable<TKey> where T : IIdentifiable<TKey> where TKey : IEquatable<TKey>
     { }
 
-    public interface ISyncCollection<T> : ISyncItem<ObservableCollection<T>>
+    public interface ISyncCollection<T> : ISyncItem<IList<T>>
     { }
 }
