@@ -11,6 +11,7 @@ namespace BassClefStudio.NET.Sync
     /// <summary>
     /// Represents synced information about the whole of a synced collection of items.
     /// </summary>
+    /// <typeparam name="T">The type of items which are being synced in this collection.</typeparam>
     /// <typeparam name="TKey">The unique key which this table of items is built on.</typeparam>
     public interface ISyncCollectionInfo<T, TKey> : ISyncInfo<T> where TKey : IEquatable<TKey>
     {
