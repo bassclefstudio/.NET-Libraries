@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,7 +12,7 @@ namespace BassClefStudio.NET.Sync
     /// Represents an object of type <typeparamref name="T"/> cached locally and synced with a remote data source (such as an API, file, or database).
     /// </summary>
     /// <typeparam name="T">The type of the item to sync.</typeparam>
-    public interface ISyncItem<T>
+    public interface ISyncItem<T> : INotifyPropertyChanged
     {
         /// <summary>
         /// The locally cached <typeparamref name="T"/> item.
@@ -34,10 +35,18 @@ namespace BassClefStudio.NET.Sync
         Task PushAsync(ISyncInfo<T> info = null);
     }
 
-
+    /// <summary>
+    /// Represents a keyed object of type <typeparamref name="T"/> cached locally and synced with a remote data source (such as an API, file, or database).
+    /// </summary>
+    /// <typeparam name="T">The type of the item to sync.</typeparam>
+    /// <typeparam name="TKey">The type of the key of the <see cref="IIdentifiable{T}"/> item.</typeparam>
     public interface IKeyedSyncItem<T, TKey> : ISyncItem<T>, IIdentifiable<TKey> where T : IIdentifiable<TKey> where TKey : IEquatable<TKey>
     { }
 
+    /// <summary>
+    /// Represents a collection with items of type <typeparamref name="T"/> cached locally and synced with a remote data source (such as an API, file, or database).
+    /// </summary>
+    /// <typeparam name="T">The type of the items to sync.</typeparam>
     public interface ISyncCollection<T> : ISyncItem<IList<T>>
     { }
 }
