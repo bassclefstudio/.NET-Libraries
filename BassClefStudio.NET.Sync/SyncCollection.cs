@@ -28,20 +28,24 @@ namespace BassClefStudio.NET.Sync
     /// <typeparam name="TKey">The type of the key used to sync each item in the collection.</typeparam>
     public abstract class SyncCollection<TItem, TKey> : Observable, ISyncCollection<IKeyedSyncItem<TItem, TKey>> where TItem : IIdentifiable<TKey> where TKey : IEquatable<TKey>
     {
-        private ObservableCollection<IKeyedSyncItem<TItem, TKey>> item;
+        private IList<IKeyedSyncItem<TItem, TKey>> item;
         /// <inheritdoc/>
-        public ObservableCollection<IKeyedSyncItem<TItem, TKey>> Item { get => item; set => Set(ref item, value); }
+        public IList<IKeyedSyncItem<TItem, TKey>> Item { get => item; set => Set(ref item, value); }
 
         private bool isLoading;
         /// <inheritdoc/>
         public bool IsLoading { get => isLoading; set => Set(ref isLoading, value); }
 
+        private Func<IList<IKeyedSyncItem<TItem, TKey>>> InitList;
+
         /// <summary>
         /// Creates a new empty <see cref="SyncCollection{TItem, TKey}"/>.
         /// </summary>
-        public SyncCollection()
+        /// <param name="initList">A <see cref="Func{T, TResult}"/> that should return the default <see cref="IList{T}"/> that should be initialized at construction and whenever the <see cref="Item"/> collection is null while syncing. Defaults to creating an empty <see cref="ObservableCollection{T}"/>.</param>
+        public SyncCollection(Func<IList<IKeyedSyncItem<TItem, TKey>>> initList = null)
         {
-            Item = new ObservableCollection<IKeyedSyncItem<TItem, TKey>>();
+            InitList = initList ?? (() => new ObservableCollection<IKeyedSyncItem<TItem, TKey>>());
+            Item = InitList();
         }
 
         /// <summary>
@@ -62,13 +66,13 @@ namespace BassClefStudio.NET.Sync
         protected abstract IKeyedSyncItem<TItem, TKey> CreateSyncItem(ILink<TItem> link);
 
         /// <inheritdoc/>
-        public async Task UpdateAsync(ISyncInfo<ObservableCollection<IKeyedSyncItem<TItem, TKey>>> info = null)
+        public async Task UpdateAsync(ISyncInfo<IList<IKeyedSyncItem<TItem, TKey>>> info = null)
         {
             IsLoading = true;
             var collectionInfo = await GetCollectionInfo();
             if(Item == null)
             {
-                Item = new ObservableCollection<IKeyedSyncItem<TItem, TKey>>();
+                Item = InitList();
             }
             Item.Sync(collectionInfo.GetKeys(), i => CreateSyncItem(GetLink(i)));
             await Item.Select(i => i.UpdateAsync(collectionInfo)).RunParallelAsync();
@@ -76,7 +80,7 @@ namespace BassClefStudio.NET.Sync
         }
 
         /// <inheritdoc/>
-        public async Task PushAsync(ISyncInfo<ObservableCollection<IKeyedSyncItem<TItem, TKey>>> info = null)
+        public async Task PushAsync(ISyncInfo<IList<IKeyedSyncItem<TItem, TKey>>> info = null)
         {
             IsLoading = true;
             if (info is ISyncInfo<TItem> syncInfo)
