@@ -74,7 +74,7 @@ namespace BassClefStudio.NET.Sync
             {
                 Item = InitList();
             }
-            Item.Sync(collectionInfo.GetKeys(), i => CreateSyncItem(GetLink(i)));
+            Item.Sync(collectionInfo.GetKeys(), (a, b) => a.Id.Equals(b), i => CreateSyncItem(GetLink(i)));
             await Item.Select(i => i.UpdateAsync(collectionInfo)).RunParallelAsync();
             IsLoading = false;
         }

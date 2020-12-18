@@ -141,9 +141,9 @@ namespace BassClefStudio.NET.Core
     }
 
     /// <summary>
-    /// Contains extension methods for awaiting collections of <see cref="Task"/>s.
+    /// Contains extension methods for running <see cref="Task"/>s.
     /// </summary>
-    public static class ParallelTaskExtensions
+    public static class TaskExtensions
     {
         /// <summary>
         /// Starts and awaits a collection of <see cref="Task"/>s in parallel.
@@ -182,6 +182,18 @@ namespace BassClefStudio.NET.Core
             }
 
             return results;
+        }
+
+        /// <summary>
+        /// Starts the <see cref="Task"/> on a new thread asynchronously in a try/catch block to catch <see cref="Exception"/>s (for more info, see <see cref="SynchronousTask"/>).
+        /// </summary>
+        /// <param name="task">The function returning a <see cref="Task"/> to start.</param>
+        /// <param name="exceptionAction">The action to take if the <see cref="Task"/> throws an <see cref="Exception"/>. Defaults to <see cref="SynchronousTask.DefaultExceptionAction(Exception)"/>.</param>
+        /// <param name="isLocked">A <see cref="bool"/> value indicating whether multiple calls to a <see cref="SynchronousTask.RunTaskAsync"/> or <see cref="SynchronousTask.RunTask"/> method while the task is running will use the same instance of the task (true), or create a different instance each time (false).</param>
+        public static void RunSynchronously(this Func<Task> task, Action<Exception> exceptionAction = null, bool isLocked = false)
+        {
+            SynchronousTask runTask = new SynchronousTask(task, exceptionAction, isLocked);
+            _ = runTask.RunTask();
         }
     }
 }
