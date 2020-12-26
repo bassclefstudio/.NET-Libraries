@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BassClefStudio.NET.Core.Time
+namespace BassClefStudio.NET.Core.Primitives
 {
     /// <summary>
     /// Represents a contiguous block of time between two <see cref="DateTimeOffset"/>s.
