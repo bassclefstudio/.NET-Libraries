@@ -7,7 +7,7 @@
     <Company>BassClefStudio</Company>
     <Description>Contains helper classes and extension methods for creating .NET projects.</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Version>1.4.2</Version>
+    <Version>1.5.1</Version>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageProjectUrl>https://github.com/bassclefstudio/.Net-Libraries</PackageProjectUrl>
   </PropertyGroup>
