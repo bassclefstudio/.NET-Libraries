@@ -43,5 +43,10 @@ namespace BassClefStudio.NET.Core.Primitives
             B = b;
             A = a;
         }
+
+        /// <summary>
+        /// The transparent <see cref="Color"/> value.
+        /// </summary>
+        public static Color Transparent { get; } = new Color(0, 0, 0, 0);
     }
 }
