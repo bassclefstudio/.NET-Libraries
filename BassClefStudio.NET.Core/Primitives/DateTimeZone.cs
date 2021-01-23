@@ -45,6 +45,14 @@ namespace BassClefStudio.NET.Core.Primitives
             TimeZone = TimeZoneInfo.Local;
         }
 
+        #region Components
+
+        /// <summary>
+        /// Gets the current date of this <see cref="DateTimeZone"/> in the provided <see cref="TimeZone"/>.
+        /// </summary>
+        public DateTimeZone Date => new DateTimeZone(DateTime.Date, TimeZone);
+
+        #endregion
         #region Statics
 
         /// <summary>
