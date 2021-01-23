@@ -58,7 +58,7 @@ namespace BassClefStudio.NET.Core.Primitives
         /// <summary>
         /// Returns a <see cref="DateTimeZone"/> for <see cref="DateTime.Now"/> in the current time zone.
         /// </summary>
-        public static DateTimeZone NowLocal => new DateTimeZone(DateTime.Now);
+        public static DateTimeZone Now => new DateTimeZone(DateTime.Now);
 
         /// <summary>
         /// Returns a <see cref="DateTimeZone"/> for <see cref="DateTime.UtcNow"/> in Universal Coordinated Time (UTC).
@@ -68,7 +68,7 @@ namespace BassClefStudio.NET.Core.Primitives
         /// <summary>
         /// Returns a <see cref="DateTimeZone"/> for <see cref="DateTime.Today"/> in the current time zone.
         /// </summary>
-        public static DateTimeZone TodayLocal => new DateTimeZone(DateTime.Today);
+        public static DateTimeZone Today => new DateTimeZone(DateTime.Today);
 
         /// <summary>
         /// Returns a <see cref="DateTimeZone"/> for the current date of <see cref="DateTime.UtcNow"/> (think DateTime.UtcToday) in Universal Coordinated Time (UTC).
