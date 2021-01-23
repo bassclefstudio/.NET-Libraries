@@ -126,6 +126,12 @@ namespace BassClefStudio.NET.Core.Primitives
             return base.GetHashCode();
         }
 
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return $"{DateTime} ({TimeZone})";
+        }
+
         /// <summary>
         /// Checks if two <see cref="DateTimeZone"/>s represent the same point in time and time-zone.
         /// </summary>
