@@ -139,6 +139,30 @@ namespace BassClefStudio.NET.Core.Primitives
         }
 
         /// <summary>
+        /// Checks to see if one <see cref="DateTimeZone"/> is larger (later) than another <see cref="DateTimeZone"/>.
+        /// </summary>
+        public static bool operator >(DateTimeZone a, DateTimeZone b)
+        {
+            return a.CompareTo(b) == 1;
+        }
+
+        /// <summary>
+        /// Checks to see if one <see cref="DateTimeZone"/> is larger (later) than or equal to another <see cref="DateTimeZone"/>.
+        /// </summary>
+        public static bool operator >=(DateTimeZone a, DateTimeZone b)
+        {
+            return (a > b) || (a == b);
+        }
+
+        /// <summary>
+        /// Checks to see if one <see cref="DateTimeZone"/> is smaller (earlier) than or equal to another <see cref="DateTimeZone"/>.
+        /// </summary>
+        public static bool operator <=(DateTimeZone a, DateTimeZone b)
+        {
+            return (a < b) || (a == b);
+        }
+
+        /// <summary>
         /// Adds a <see cref="TimeSpan"/> to a <see cref="DateTimeZone"/>.
         /// </summary>
         public static DateTimeZone operator +(DateTimeZone a, TimeSpan b)
