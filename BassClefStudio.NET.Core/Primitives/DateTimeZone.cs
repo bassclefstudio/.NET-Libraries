@@ -7,7 +7,7 @@ namespace BassClefStudio.NET.Core.Primitives
     /// <summary>
     /// Represents a <see cref="DateTime"/> with knowledge of the time zone it belongs to.
     /// </summary>
-    public struct DateTimeZone : IComparable, IComparable<DateTimeOffset>, IEquatable<DateTimeOffset>, IComparable<DateTimeZone>, IEquatable<DateTimeZone>
+    public struct DateTimeZone : IComparable, IComparable<DateTimeOffset>, IEquatable<DateTimeOffset>, IComparable<DateTimeZone>, IEquatable<DateTimeZone>, IFormattable
     {
         /// <summary>
         /// The date-time of this <see cref="DateTimeZone"/>, with no time-zone information attached.
@@ -130,6 +130,12 @@ namespace BassClefStudio.NET.Core.Primitives
         public override string ToString()
         {
             return $"{DateTime} ({TimeZone})";
+        }
+
+        /// <inheritdoc/>
+        public string ToString(string format, IFormatProvider formatProvider = null)
+        {
+            return $"{DateTime.ToString(format, formatProvider)} ({TimeZone})";
         }
 
         /// <summary>
