@@ -60,21 +60,34 @@ namespace BassClefStudio.NET.Core.Primitives
         }
 
         /// <inheritdoc/>
-        public bool Equals(DateTimeOffset other)
-        {
-            return OffsetDateTime.Equals(other);
-        }
-
-        /// <inheritdoc/>
         public int CompareTo(DateTimeZone other)
         {
             return OffsetDateTime.CompareTo(other.OffsetDateTime);
         }
 
         /// <inheritdoc/>
+        public bool Equals(DateTimeOffset other)
+        {
+            return OffsetDateTime.Equals(other);
+        }
+
+        /// <inheritdoc/>
         public bool Equals(DateTimeZone other)
         {
             return this == other;
+        }
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj)
+        {
+            return obj is DateTimeZone dateTimeZone
+                && this == dateTimeZone;
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
 
         /// <summary>
@@ -111,9 +124,17 @@ namespace BassClefStudio.NET.Core.Primitives
         }
 
         /// <summary>
+        /// Subtracts a <see cref="TimeSpan"/> from a <see cref="DateTimeZone"/>.
+        /// </summary>
+        public static DateTimeZone operator -(TimeSpan b, DateTimeZone a)
+        {
+            return new DateTimeZone(a.DateTime - b, a.TimeZone);
+        }
+
+        /// <summary>
         /// Subtracts two <see cref="DateTimeZone"/>s together, returning the <see cref="TimeSpan"/> difference between them.
         /// </summary>
-        public static TimeSpan operator +(DateTimeZone a, DateTimeZone b)
+        public static TimeSpan operator -(DateTimeZone a, DateTimeZone b)
         {
             return a.OffsetDateTime - b.OffsetDateTime;
         }
