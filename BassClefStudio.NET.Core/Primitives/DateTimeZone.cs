@@ -143,7 +143,7 @@ namespace BassClefStudio.NET.Core.Primitives
         /// </summary>
         public static bool operator >(DateTimeZone a, DateTimeZone b)
         {
-            return a.CompareTo(b) == 1;
+            return a.CompareTo(b) > 0;
         }
 
         /// <summary>
@@ -152,6 +152,14 @@ namespace BassClefStudio.NET.Core.Primitives
         public static bool operator >=(DateTimeZone a, DateTimeZone b)
         {
             return (a > b) || (a == b);
+        }
+
+        /// <summary>
+        /// Checks to see if one <see cref="DateTimeZone"/> is smaller (earlier) than another <see cref="DateTimeZone"/>.
+        /// </summary>
+        public static bool operator <(DateTimeZone a, DateTimeZone b)
+        {
+            return a.CompareTo(b) < 0;
         }
 
         /// <summary>
