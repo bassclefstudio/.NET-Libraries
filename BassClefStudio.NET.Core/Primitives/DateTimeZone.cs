@@ -45,6 +45,29 @@ namespace BassClefStudio.NET.Core.Primitives
             TimeZone = TimeZoneInfo.Local;
         }
 
+        #region Statics
+
+        /// <summary>
+        /// Returns a <see cref="DateTimeZone"/> for <see cref="DateTime.Now"/> in the current time zone.
+        /// </summary>
+        public static DateTimeZone NowLocal => new DateTimeZone(DateTime.Now);
+
+        /// <summary>
+        /// Returns a <see cref="DateTimeZone"/> for <see cref="DateTime.UtcNow"/> in Universal Coordinated Time (UTC).
+        /// </summary>
+        public static DateTimeZone UtcNow => new DateTimeZone(DateTime.UtcNow, TimeZoneInfo.Utc);
+
+        /// <summary>
+        /// Returns a <see cref="DateTimeZone"/> for <see cref="DateTime.Today"/> in the current time zone.
+        /// </summary>
+        public static DateTimeZone TodayLocal => new DateTimeZone(DateTime.Today);
+
+        /// <summary>
+        /// Returns a <see cref="DateTimeZone"/> for the current date of <see cref="DateTime.UtcNow"/> (think DateTime.UtcToday) in Universal Coordinated Time (UTC).
+        /// </summary>
+        public static DateTimeZone UtcToday => new DateTimeZone(DateTime.UtcNow.Date, TimeZoneInfo.Utc);
+
+        #endregion
         #region Operations
 
         /// <inheritdoc/>
