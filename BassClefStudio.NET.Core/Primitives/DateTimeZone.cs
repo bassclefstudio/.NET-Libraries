@@ -52,6 +52,11 @@ namespace BassClefStudio.NET.Core.Primitives
         /// </summary>
         public DateTimeZone Date => new DateTimeZone(DateTime.Date, TimeZone);
 
+        /// <summary>
+        /// Gets the current time of day of this <see cref="DateTimeZone"/>, in the provided <see cref="TimeZone"/>.
+        /// </summary>
+        public TimeSpan TimeOfDay => DateTime.TimeOfDay;
+
         #endregion
         #region Statics
 
