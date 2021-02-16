@@ -45,6 +45,32 @@ namespace BassClefStudio.NET.Core
         /// Performs a binary search on the specified collection.
         /// </summary>
         /// <typeparam name="TItem">The type of the item.</typeparam>
+        /// <param name="list">The list to be searched.</param>
+        /// <param name="value">The value to search for.</param>
+        /// <returns></returns>
+        public static int BinarySearch<TItem>(this IList<TItem> list, TItem value)
+        {
+            return BinarySearch(list, value, Comparer<TItem>.Default);
+        }
+
+        /// <summary>
+        /// Performs a binary search on the specified collection.
+        /// </summary>
+        /// <typeparam name="TItem">The type of the item.</typeparam>
+        /// <param name="list">The list to be searched.</param>
+        /// <param name="value">The value to search for.</param>
+        /// <param name="comparer">The comparer that is used to compare the value with the list items.</param>
+        /// <returns></returns>
+        public static int BinarySearch<TItem>(this IList<TItem> list, TItem value,
+            IComparer<TItem> comparer)
+        {
+            return list.BinarySearch(value, comparer.Compare);
+        }
+
+        /// <summary>
+        /// Performs a binary search on the specified collection.
+        /// </summary>
+        /// <typeparam name="TItem">The type of the item.</typeparam>
         /// <typeparam name="TSearch">The type of the searched item.</typeparam>
         /// <param name="list">The list to be searched.</param>
         /// <param name="value">The value to search for.</param>
@@ -87,30 +113,12 @@ namespace BassClefStudio.NET.Core
         }
 
         /// <summary>
-        /// Performs a binary search on the specified collection.
+        /// Adds an item to an <see cref="IList{T}"/> in a way so that the list remains in order.
         /// </summary>
-        /// <typeparam name="TItem">The type of the item.</typeparam>
-        /// <param name="list">The list to be searched.</param>
-        /// <param name="value">The value to search for.</param>
-        /// <returns></returns>
-        public static int BinarySearch<TItem>(this IList<TItem> list, TItem value)
-        {
-            return BinarySearch(list, value, Comparer<TItem>.Default);
-        }
-
-        /// <summary>
-        /// Performs a binary search on the specified collection.
-        /// </summary>
-        /// <typeparam name="TItem">The type of the item.</typeparam>
-        /// <param name="list">The list to be searched.</param>
-        /// <param name="value">The value to search for.</param>
-        /// <param name="comparer">The comparer that is used to compare the value with the list items.</param>
-        /// <returns></returns>
-        public static int BinarySearch<TItem>(this IList<TItem> list, TItem value,
-            IComparer<TItem> comparer)
-        {
-            return list.BinarySearch(value, comparer.Compare);
-        }
+        /// <typeparam name="T">The type of comparable items in the <see cref="IList{T}"/>.</typeparam>
+        /// <param name="list">An initially sorted/ordered list of <typeparamref name="T"/> items.</param>
+        /// <param name="item">The new <typeparamref name="T"/> item to insert into the <paramref name="list"/>.</param>
+        public static void AddSorted<T>(this IList<T> list, T item) => AddSorted(list, item, Comparer<T>.Default);
 
         /// <summary>
         /// Adds an item to an <see cref="IList{T}"/> in a way so that the list remains in order.
@@ -118,24 +126,34 @@ namespace BassClefStudio.NET.Core
         /// <typeparam name="T">The type of comparable items in the <see cref="IList{T}"/>.</typeparam>
         /// <param name="list">An initially sorted/ordered list of <typeparamref name="T"/> items.</param>
         /// <param name="item">The new <typeparamref name="T"/> item to insert into the <paramref name="list"/>.</param>
-        public static void AddSorted<T>(this IList<T> list, T item) where T : IComparable<T>
+        /// <param name="comparer">The comparer that is used to compare <paramref name="item"/> with the items in <paramref name="list"/>.</param>
+        public static void AddSorted<T>(this IList<T> list, T item, IComparer<T> comparer) => AddSorted(list, item, comparer.Compare);
+
+        /// <summary>
+        /// Adds an item to an <see cref="IList{T}"/> in a way so that the list remains in order.
+        /// </summary>
+        /// <typeparam name="T">The type of comparable items in the <see cref="IList{T}"/>.</typeparam>
+        /// <param name="list">An initially sorted/ordered list of <typeparamref name="T"/> items.</param>
+        /// <param name="item">The new <typeparamref name="T"/> item to insert into the <paramref name="list"/>.</param>
+        /// <param name="comparer">The comparer that is used to compare <paramref name="item"/> with the items in <paramref name="list"/>.</param>
+        public static void AddSorted<T>(this IList<T> list, T item, Func<T, T, int> comparer)
         {
             if (list.Count == 0)
             {
                 list.Add(item);
                 return;
             }
-            if (list[list.Count - 1].CompareTo(item) <= 0)
+            if (comparer(list[list.Count - 1], item) <= 0)
             {
                 list.Add(item);
                 return;
             }
-            if (list[0].CompareTo(item) >= 0)
+            if (comparer(list[0], item) >= 0)
             {
                 list.Insert(0, item);
                 return;
             }
-            int index = list.BinarySearch(item);
+            int index = list.BinarySearch(item, comparer);
             if (index < 0)
                 index = ~index;
             list.Insert(index, item);
