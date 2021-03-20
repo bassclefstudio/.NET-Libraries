@@ -42,11 +42,4 @@ namespace BassClefStudio.NET.Sync
     /// <typeparam name="TKey">The type of the key of the <see cref="IIdentifiable{T}"/> item.</typeparam>
     public interface IKeyedSyncItem<T, TKey> : ISyncItem<T>, IIdentifiable<TKey> where T : IIdentifiable<TKey> where TKey : IEquatable<TKey>
     { }
-
-    /// <summary>
-    /// Represents a collection with items of type <typeparamref name="T"/> cached locally and synced with a remote data source (such as an API, file, or database).
-    /// </summary>
-    /// <typeparam name="T">The type of the items to sync.</typeparam>
-    public interface ISyncCollection<T> : ISyncItem<IList<T>>
-    { }
 }
