@@ -53,12 +53,12 @@ namespace BassClefStudio.NET.Sync
 
         private Task updateTask;
         /// <inheritdoc/>
-        public async Task UpdateAsync(ISyncInfo<T> info = null)
+        public async Task UpdateAsync()
         {
             if(updateTask == null)
             {
                 IsLoading = true;
-                updateTask = Link.UpdateAsync(this, info);
+                updateTask = Link.UpdateAsync(this);
             }
             await updateTask;
             updateTask = null;
@@ -67,12 +67,12 @@ namespace BassClefStudio.NET.Sync
 
         private Task pushTask;
         /// <inheritdoc/>
-        public async Task PushAsync(ISyncInfo<T> info = null)
+        public async Task PushAsync()
         {
             if (pushTask == null)
             {
                 IsLoading = true;
-                pushTask = Link.PushAsync(this, info);
+                pushTask = Link.PushAsync(this);
             }
             await pushTask;
             pushTask = null;

@@ -27,12 +27,12 @@ namespace BassClefStudio.NET.Sync
         /// <summary>
         /// Updates <see cref="Item"/> with the latest content from the data source.
         /// </summary>
-        Task UpdateAsync(ISyncInfo<T> info = null);
+        Task UpdateAsync();
 
         /// <summary>
         /// Pushes the content of <see cref="Item"/> to the data source.
         /// </summary>
-        Task PushAsync(ISyncInfo<T> info = null);
+        Task PushAsync();
     }
 
     /// <summary>
