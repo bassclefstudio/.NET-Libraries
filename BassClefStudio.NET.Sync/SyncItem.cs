@@ -51,19 +51,31 @@ namespace BassClefStudio.NET.Sync
             IsLoading = true;
         }
 
+        private Task updateTask;
         /// <inheritdoc/>
-        public async Task UpdateAsync(ISyncInfo<T> info = null)
+        public async Task UpdateAsync()
         {
-            IsLoading = true;
-            await Link.UpdateAsync(this, info);
+            if(updateTask == null)
+            {
+                IsLoading = true;
+                updateTask = Link.UpdateAsync(this);
+            }
+            await updateTask;
+            updateTask = null;
             IsLoading = false;
         }
 
+        private Task pushTask;
         /// <inheritdoc/>
-        public async Task PushAsync(ISyncInfo<T> info = null)
+        public async Task PushAsync()
         {
-            IsLoading = true;
-            await Link.PushAsync(this, info);
+            if (pushTask == null)
+            {
+                IsLoading = true;
+                pushTask = Link.PushAsync(this);
+            }
+            await pushTask;
+            pushTask = null;
             IsLoading = false;
         }
     }
