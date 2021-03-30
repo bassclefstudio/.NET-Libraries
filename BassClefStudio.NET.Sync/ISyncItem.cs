@@ -25,14 +25,21 @@ namespace BassClefStudio.NET.Sync
         bool IsLoading { get; }
 
         /// <summary>
+        /// A <see cref="bool"/> indicating whether this <see cref="ISyncItem{T}"/> has data in it yet that could be synced.
+        /// </summary>
+        bool IsInitialized { get; }
+
+        /// <summary>
         /// Updates <see cref="Item"/> with the latest content from the data source.
         /// </summary>
-        Task UpdateAsync();
+        /// <returns>A <see cref="bool"/> indicating the operation succeeded.</returns>
+        Task<bool> UpdateAsync();
 
         /// <summary>
         /// Pushes the content of <see cref="Item"/> to the data source.
         /// </summary>
-        Task PushAsync();
+        /// <returns>A <see cref="bool"/> indicating the operation succeeded.</returns>
+        Task<bool> PushAsync();
     }
 
     /// <summary>

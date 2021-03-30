@@ -34,6 +34,7 @@ namespace BassClefStudio.NET.Core
             OnPropertyChanged(propertyName);
         }
 
+        /// <inheritdoc/>
         protected void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

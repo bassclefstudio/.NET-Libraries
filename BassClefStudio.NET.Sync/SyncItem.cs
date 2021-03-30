@@ -14,7 +14,16 @@ namespace BassClefStudio.NET.Sync
     {
         private T item;
         /// <inheritdoc/>
-        public T Item { get => item; set { Set(ref item, value); ItemChanged?.Invoke(this, new EventArgs()); } }
+        public T Item 
+        {
+            get => item; 
+            set
+            {
+                Set(ref item, value);
+                IsInitialized = IsInitialized || item != null;
+                ItemChanged?.Invoke(this, new EventArgs()); 
+            }
+        }
 
         /// <summary>
         /// An event that is called when the <see cref="Item"/> property is changed.
@@ -23,7 +32,11 @@ namespace BassClefStudio.NET.Sync
 
         private bool isLoading;
         /// <inheritdoc/>
-        public bool IsLoading { get => isLoading; set => Set(ref isLoading, value); }
+        public bool IsLoading { get => isLoading; private set => Set(ref isLoading, value); }
+
+        private bool isInit;
+        /// <inheritdoc/>
+        public bool IsInitialized { get => isInit; private set => Set(ref isInit, value); }
 
         /// <summary>
         /// The <see cref="ILink{T}"/> to the data store.
@@ -51,32 +64,42 @@ namespace BassClefStudio.NET.Sync
             IsLoading = true;
         }
 
-        private Task updateTask;
+        private Task<bool> updateTask;
         /// <inheritdoc/>
-        public async Task UpdateAsync()
+        public async Task<bool> UpdateAsync()
         {
             if(updateTask == null)
             {
                 IsLoading = true;
                 updateTask = Link.UpdateAsync(this);
             }
-            await updateTask;
+            var result = await updateTask;
+            IsInitialized = IsInitialized || result;
             updateTask = null;
             IsLoading = false;
+            return result;
         }
 
-        private Task pushTask;
+        private Task<bool> pushTask;
         /// <inheritdoc/>
-        public async Task PushAsync()
+        public async Task<bool> PushAsync()
         {
-            if (pushTask == null)
+            if (IsInitialized)
             {
-                IsLoading = true;
-                pushTask = Link.PushAsync(this);
+                if (pushTask == null)
+                {
+                    IsLoading = true;
+                    pushTask = Link.PushAsync(this);
+                }
+                var result = await pushTask;
+                pushTask = null;
+                IsLoading = false;
+                return result;
             }
-            await pushTask;
-            pushTask = null;
-            IsLoading = false;
+            else
+            {
+                return true;
+            }
         }
     }
 
