@@ -66,21 +66,23 @@ namespace BassClefStudio.NET.Sync
 
         private Task<bool> updateTask;
         /// <inheritdoc/>
-        public async Task UpdateAsync()
+        public async Task<bool> UpdateAsync()
         {
             if(updateTask == null)
             {
                 IsLoading = true;
                 updateTask = Link.UpdateAsync(this);
             }
-            IsInitialized = IsInitialized || await updateTask;
+            var result = await updateTask;
+            IsInitialized = IsInitialized || result;
             updateTask = null;
             IsLoading = false;
+            return result;
         }
 
         private Task<bool> pushTask;
         /// <inheritdoc/>
-        public async Task PushAsync()
+        public async Task<bool> PushAsync()
         {
             if (IsInitialized)
             {
@@ -89,9 +91,14 @@ namespace BassClefStudio.NET.Sync
                     IsLoading = true;
                     pushTask = Link.PushAsync(this);
                 }
-                await pushTask;
+                var result = await pushTask;
                 pushTask = null;
                 IsLoading = false;
+                return result;
+            }
+            else
+            {
+                return true;
             }
         }
     }

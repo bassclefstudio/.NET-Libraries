@@ -32,12 +32,14 @@ namespace BassClefStudio.NET.Sync
         /// <summary>
         /// Updates <see cref="Item"/> with the latest content from the data source.
         /// </summary>
-        Task UpdateAsync();
+        /// <returns>A <see cref="bool"/> indicating the operation succeeded.</returns>
+        Task<bool> UpdateAsync();
 
         /// <summary>
         /// Pushes the content of <see cref="Item"/> to the data source.
         /// </summary>
-        Task PushAsync();
+        /// <returns>A <see cref="bool"/> indicating the operation succeeded.</returns>
+        Task<bool> PushAsync();
     }
 
     /// <summary>

@@ -60,12 +60,12 @@ namespace BassClefStudio.NET.Sync
         /// <summary>
         /// A <see cref="Func{TResult}"/> that asynchronously deletes the item with the given <typeparamref name="TKey"/> from the backing store.
         /// </summary>
-        public Func<TKey, Task> DeleteItemAsync { get; }
+        public Func<TKey, Task<bool>> DeleteItemAsync { get; }
 
         /// <summary>
         /// A <see cref="Func{TResult}"/> that asynchronously creates the item with the given <typeparamref name="TKey"/> in the backing store.
         /// </summary>
-        public Func<TKey, Task> CreateItemAsync { get; }
+        public Func<TKey, Task<bool>> CreateItemAsync { get; }
 
         /// <summary>
         /// Creates a new <see cref="KeyedCollectionLink{T, TKey}"/>.
@@ -74,7 +74,7 @@ namespace BassClefStudio.NET.Sync
         /// <param name="getKeys">A <see cref="Func{TResult}"/> that asynchronously gets a collection of all <typeparamref name="TKey"/> keys in the collection.</param>
         /// <param name="deleteTask">A <see cref="Func{TResult}"/> that asynchronously deletes the item with the given <typeparamref name="TKey"/> from the backing store.</param>
         /// <param name="createTask">A <see cref="Func{TResult}"/> that asynchronously creates the item with the given <typeparamref name="TKey"/> in the backing store.</param>
-        public KeyedCollectionLink(Func<TKey, ILink<T>> linkFunc, Func<Task<IEnumerable<TKey>>> getKeys, Func<TKey, Task> deleteTask, Func<TKey, Task> createTask)
+        public KeyedCollectionLink(Func<TKey, ILink<T>> linkFunc, Func<Task<IEnumerable<TKey>>> getKeys, Func<TKey, Task<bool>> deleteTask, Func<TKey, Task<bool>> createTask)
         {
             CreateLinkFunc = linkFunc;
             GetKeysAsync = getKeys;
@@ -91,12 +91,12 @@ namespace BassClefStudio.NET.Sync
         {
             CreateLinkFunc = linkFunc;
             GetKeysAsync = getKeys;
-            DeleteItemAsync = k => Task.CompletedTask;
-            CreateItemAsync = k => Task.CompletedTask;
+            DeleteItemAsync = k => Task.FromResult<bool>(true);
+            CreateItemAsync = k => Task.FromResult<bool>(true);
         }
 
         /// <inheritdoc/>
-        public async Task UpdateAsync(ISyncItem<IList<IKeyedSyncItem<T, TKey>>> item)
+        public async Task<bool> UpdateAsync(ISyncItem<IList<IKeyedSyncItem<T, TKey>>> item)
         {
             var keys = await GetKeysAsync();
             IEnumerable<IKeyedSyncItem<T, TKey>> toRemove = item.Item.Where(s => !keys.Contains(s.Id)).ToArray();
@@ -113,24 +113,38 @@ namespace BassClefStudio.NET.Sync
             }
 
             var updateTasks = item.Item.Select(i => i.UpdateAsync());
-            await Task.WhenAll(updateTasks);
+            var updates = await Task.WhenAll(updateTasks);
+            return updates.All(b => b);
         }
 
         /// <inheritdoc/>
-        public async Task PushAsync(ISyncItem<IList<IKeyedSyncItem<T, TKey>>> item)
+        public async Task<bool> PushAsync(ISyncItem<IList<IKeyedSyncItem<T, TKey>>> item)
         {
             var keys = await GetKeysAsync();
             IEnumerable<TKey> toAdd = item.Item.Select(s => s.Id).Where(k => !keys.Contains(k)).ToArray();
             IEnumerable<TKey> toRemove = keys.Where(k => !item.Item.Select(s => s.Id).Contains(k)).ToArray();
 
             var removeTasks = toRemove.Select(r => DeleteItemAsync(r));
-            await Task.WhenAll(removeTasks);
+            var rems = await Task.WhenAll(removeTasks);
+
+            if(!rems.All(b => b))
+            {
+                //// Failed to remove items.
+                return false;
+            }
 
             var addTasks = toAdd.Select(a => CreateItemAsync(a));
-            await Task.WhenAll(addTasks);
+            var adds = await Task.WhenAll(addTasks);
+
+            if (!adds.All(b => b))
+            {
+                //// Failed to add items.
+                return false;
+            }
 
             var pushTasks = item.Item.Select(i => i.PushAsync());
-            await Task.WhenAll(pushTasks);
+            var pushes = await Task.WhenAll(pushTasks);
+            return pushes.All(b => b);
         }
     }
 }
