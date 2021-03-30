@@ -15,12 +15,14 @@ namespace BassClefStudio.NET.Sync
         /// Pushes a given <typeparamref name="T"/> item to the remote data source.
         /// </summary>
         /// <param name="item">An <see cref="ISyncItem{T}"/> wrapper of the <typeparamref name="T"/> item to sync.</param>
-        Task PushAsync(ISyncItem<T> item);
+        /// <returns>A <see cref="bool"/> indicating the operation succeeded.</returns>
+        Task<bool> PushAsync(ISyncItem<T> item);
 
         /// <summary>
         /// Updates a given <typeparamref name="T"/> item with data from the remote source.
         /// </summary>
         /// <param name="item">An <see cref="ISyncItem{T}"/> wrapper of the <typeparamref name="T"/> item to sync.</param>
-        Task UpdateAsync(ISyncItem<T> item);
+        /// <returns>A <see cref="bool"/> indicating the operation succeeded.</returns>
+        Task<bool> UpdateAsync(ISyncItem<T> item);
     }
 }
