@@ -1,14 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.4</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RepositoryUrl>https://github.com/bassclefstudio/.Net-Libraries.git</RepositoryUrl>
     <Authors>BassClefStudio</Authors>
     <Company>BassClefStudio</Company>
     <Description>Contains helper classes and extension methods for creating .NET projects.</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Version>1.6.1</Version>
+    <Version>2.0.0</Version>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageProjectUrl>https://github.com/bassclefstudio/.Net-Libraries</PackageProjectUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Streams\" />
+  </ItemGroup>
 </Project>
