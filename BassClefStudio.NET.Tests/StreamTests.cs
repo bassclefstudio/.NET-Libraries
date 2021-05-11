@@ -203,6 +203,43 @@ namespace BassClefStudio.AppModel.Tests
             Assert.AreEqual(number, length, "Lazy stream evaluation returned the incorrect count.");
         }
 
+        [TestMethod]
+        public void TestCast()
+        {
+            int length = 4;
+            int count = 0;
+            SourceStream<object> source = SourceStream<object>.Repeat(new MyClass(), length);
+            IStream<MyClass> stream = source.Cast<object, MyClass>()
+                .BindResult(c => count++);
+            stream.Start();
+            Assert.AreEqual(count, length, "Stream casting did not correctly cast all values.");
+        }
+
+        [TestMethod]
+        public void TestAs()
+        {
+            int length = 4;
+            int count = 0;
+            SourceStream<MyClass> source = SourceStream<MyClass>.Repeat(new MyClass(), length);
+            IStream<Observable> stream = source.As<MyClass, Observable>()
+                .BindResult(c => count++);
+            stream.Start();
+            Assert.AreEqual(count, length, "Stream casting did not correctly cast all values.");
+        }
+
+        [TestMethod]
+        public void TestCastFilter()
+        {
+            int length = 4;
+            int count = 0;
+            SourceStream<object> source = SourceStream<object>.Repeat(4, length);
+            IStream<MyClass> stream = source.OfType<object, MyClass>()
+                .BindResult(c => count++);
+            stream.Start();
+            source.EmitValue(new MyClass());
+            Assert.AreEqual(count, 1, "Stream should have filtered all but the last MyClass item by type.");
+        }
+
         #endregion
         #region Sources
 

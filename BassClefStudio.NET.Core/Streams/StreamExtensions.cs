@@ -42,6 +42,18 @@ namespace BassClefStudio.NET.Core.Streams
                     : throw new StreamException($"Invalid casting in MapStream: {t1?.GetType()?.Name} to {typeof(T2).Name}."));
         }
 
+        /// <summary>
+        /// Creates an <see cref="IStream{T}"/> that contains cast values of all <typeparamref name="T2"/> items emitted by the parent <see cref="IStream{T}"/> of <typeparamref name="T1"/> values.
+        /// </summary>
+        /// <typeparam name="T1">The type of values returned by the parent <see cref="IStream{T}"/>.</typeparam>
+        /// <typeparam name="T2">The type of the cast values this <see cref="IStream{T}"/> returns.</typeparam>
+        /// <param name="stream">The parent <see cref="IStream{T}"/> producing <typeparamref name="T1"/> values.</param>
+        /// <returns>An <see cref="IStream{T}"/> that returns cast <typeparamref name="T2"/> values.</returns>
+        public static IStream<T2> OfType<T1,T2>(this IStream<T1> stream)
+        {
+            return stream.Where(t1 => t1 is T2).Cast<T1, T2>();
+        }
+
         #endregion
         #region Select
 
