@@ -22,7 +22,7 @@ namespace BassClefStudio.NET.Core.Primitives
         /// <summary>
         /// Gets a <see cref="DateTimeOffset"/> representing this <see cref="DateTimeZone"/>'s exact point in time with the correct offset from UTC.
         /// </summary>
-        public DateTimeOffset OffsetDateTime => new DateTimeOffset(DateTime, (TimeZone ?? TimeZoneInfo.Local).GetUtcOffset(DateTime));
+        public DateTimeOffset OffsetDateTime => new DateTimeOffset(DateTime.SpecifyKind(DateTime, DateTimeKind.Unspecified), (TimeZone ?? TimeZoneInfo.Local).GetUtcOffset(DateTime));
 
         /// <summary>
         /// Creates a new <see cref="DateTimeZone"/>.
