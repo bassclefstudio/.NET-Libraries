@@ -130,6 +130,36 @@ namespace BassClefStudio.NET.Core.Streams
         }
 
         #endregion
+        #region Take
+
+        /// <summary>
+        /// Creates an <see cref="IStream{T}"/> that transforms some number of values from the given <see cref="IStream{T}"/> into <typeparamref name="T2"/> values.
+        /// </summary>
+        /// <typeparam name="T1">The type of values returned by the parent <see cref="IStream{T}"/>.</typeparam>
+        /// <typeparam name="T2">The type of the values this <see cref="IStream{T}"/> returns.</typeparam>
+        /// <param name="stream">The parent <see cref="IStream{T}"/> producing <typeparamref name="T1"/> values.</param>
+        /// <param name="produceFunc">The function that returns a new <typeparamref name="T2"/> from the last <paramref name="takeSize"/> <typeparamref name="T1"/> values emitted by the parent <see cref="IStream{T}"/>.</param>
+        /// <param name="takeSize">The number of <typeparamref name="T1"/> items to be provided as inputs to the <paramref name="produceFunc"/> function.</param>
+        /// <returns>An <see cref="IStream{T}"/> that returns resulting <typeparamref name="T2"/> values.</returns>
+        public static IStream<T2> Take<T1, T2>(this IStream<T1> stream, Func<T1[], T2> produceFunc, int takeSize = 2)
+        {
+            return new TakeStream<T1, T2>(stream, produceFunc, takeSize);
+        }
+
+        /// <summary>
+        /// Creates an <see cref="IStream{T}"/> that transforms the last two values from the given <see cref="IStream{T}"/> into a single <typeparamref name="T2"/> value.
+        /// </summary>
+        /// <typeparam name="T1">The type of values returned by the parent <see cref="IStream{T}"/>.</typeparam>
+        /// <typeparam name="T2">The type of the values this <see cref="IStream{T}"/> returns.</typeparam>
+        /// <param name="stream">The parent <see cref="IStream{T}"/> producing <typeparamref name="T1"/> values.</param>
+        /// <param name="produceFunc">The function that returns a new <typeparamref name="T2"/> from the last two <typeparamref name="T1"/> values emitted by the parent <see cref="IStream{T}"/>.</param>
+        /// <returns>An <see cref="IStream{T}"/> that returns resulting <typeparamref name="T2"/> values.</returns>
+        public static IStream<T2> Take<T1, T2>(this IStream<T1> stream, Func<T1, T1, T2> produceFunc)
+        {
+            return new TakeStream<T1, T2>(stream, ts => produceFunc(ts[0], ts[1]));
+        }
+
+        #endregion
         #region Join
 
         /// <summary>

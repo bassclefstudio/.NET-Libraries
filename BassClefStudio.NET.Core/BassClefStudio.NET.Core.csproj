@@ -7,12 +7,8 @@
     <Company>BassClefStudio</Company>
     <Description>Contains helper classes and extension methods for creating .NET projects.</Description>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Version>2.0.2</Version>
+    <Version>2.0.3</Version>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageProjectUrl>https://github.com/bassclefstudio/.Net-Libraries</PackageProjectUrl>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Folder Include="Streams\" />
-  </ItemGroup>
 </Project>

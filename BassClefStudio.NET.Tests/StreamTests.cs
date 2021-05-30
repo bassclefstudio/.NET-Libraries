@@ -32,7 +32,8 @@ namespace BassClefStudio.AppModel.Tests
             var myObject = CreateTestObject();
             string value = null;
             IStream<string> nameBinding = getBinding(myObject)
-                .BindResult(v => value = v);
+                .BindResult(v => value = v)
+                .BindError(e => throw e);
             nameBinding.Start();
 
             myObject.Property.Name = "Test 2";
@@ -116,6 +117,7 @@ namespace BassClefStudio.AppModel.Tests
             var stream = new SourceStream<string>(values)
                 .Where(s => s.Last() == '!')
                 .BindResult(results.Add);
+            SetupException(stream);
             stream.Start();
             Assert.AreEqual(3, results.Count, "Result does not contain expected number of items.");
             Assert.IsTrue(results.SequenceEqual(new string[] { values[0], values[2], values[4] }));
@@ -131,6 +133,7 @@ namespace BassClefStudio.AppModel.Tests
             var stream = source
                 .Aggregate<string, int>((n, s) => n + 1)
                 .BindResult(n => number = n);
+            SetupException(stream);
             stream.Start();
             Assert.AreEqual(length, number, "Aggregate was not expected value.");
         }
@@ -143,6 +146,7 @@ namespace BassClefStudio.AppModel.Tests
             var stream = SourceStream<int>.Repeat(2, length)
                 .Sum()
                 .BindResult(n => number = n);
+            SetupException(stream);
             stream.Start();
             Assert.AreEqual(length * 2, number, "Sum was not expected value.");
         }
@@ -155,6 +159,7 @@ namespace BassClefStudio.AppModel.Tests
             var stream = SourceStream<string>.Repeat("Hello World!", length)
                 .Count()
                 .BindResult(n => number = n);
+            SetupException(stream);
             stream.Start();
             Assert.AreEqual(length, number, "Count was not expected value.");
         }
@@ -169,6 +174,7 @@ namespace BassClefStudio.AppModel.Tests
             IStream<int> join = streamB
                 .Join(streamA, (i, s) => i + s)
                 .BindResult(n => numbers.Add(n));
+            SetupException(join);
             join.Start();
             Assert.AreEqual(numbers.Count, length + 1, "Returned values were of an unexpected length");
             Assert.IsTrue(numbers.SequenceEqual(Enumerable.Range(2, length + 1)), "Sequence of returned values was unexpected.");
@@ -184,6 +190,7 @@ namespace BassClefStudio.AppModel.Tests
             var stream = source
                 .Unique()
                 .BindResult(n => number++);
+            SetupException(stream);
             stream.Start();
             Assert.AreEqual(1, number, "Number of unique items was invalid.");
         }
@@ -199,6 +206,7 @@ namespace BassClefStudio.AppModel.Tests
                 .Count()
                 .BindResult(n => number = n);
             source = SourceStream<int>.Repeat(1, length);
+            SetupException(stream);
             stream.Start();
             Assert.AreEqual(number, length, "Lazy stream evaluation returned the incorrect count.");
         }
@@ -211,6 +219,7 @@ namespace BassClefStudio.AppModel.Tests
             SourceStream<object> source = SourceStream<object>.Repeat(new MyClass(), length);
             IStream<MyClass> stream = source.Cast<object, MyClass>()
                 .BindResult(c => count++);
+            SetupException(stream);
             stream.Start();
             Assert.AreEqual(count, length, "Stream casting did not correctly cast all values.");
         }
@@ -222,7 +231,8 @@ namespace BassClefStudio.AppModel.Tests
             int count = 0;
             SourceStream<MyClass> source = SourceStream<MyClass>.Repeat(new MyClass(), length);
             IStream<Observable> stream = source.As<MyClass, Observable>()
-                .BindResult(c => count++);
+                .BindResult(c => count++); 
+            SetupException(stream);
             stream.Start();
             Assert.AreEqual(count, length, "Stream casting did not correctly cast all values.");
         }
@@ -235,9 +245,39 @@ namespace BassClefStudio.AppModel.Tests
             SourceStream<object> source = SourceStream<object>.Repeat(4, length);
             IStream<MyClass> stream = source.OfType<object, MyClass>()
                 .BindResult(c => count++);
+            SetupException(stream);
             stream.Start();
-            source.EmitValue(new MyClass());
-            Assert.AreEqual(count, 1, "Stream should have filtered all but the last MyClass item by type.");
+            for (int i = 0; i < length; i++)
+            {
+                source.EmitValue(new MyClass());
+            }
+            Assert.AreEqual(length, count, "Stream should have filtered all but the last MyClass item by type.");
+        }
+
+        [TestMethod]
+        public void TestTakePair()
+        {
+            int length = 4;
+            int sum = 0;
+            SourceStream<int> source = SourceStream<int>.CountStream(1, length);
+            IStream<int> stream = source.Take((v1, v2) => v1 + v2)
+                .BindResult(c => sum += c);
+            SetupException(stream);
+            stream.Start();
+            Assert.AreEqual((1 + 2) + (2 + 3) + (3 + 4), sum, "Take stream should have expected sum of all consecutive pairs of [1,2,3,4].");
+        }
+
+        [TestMethod]
+        public void TestTakeMany()
+        {
+            int length = 4;
+            int sum = 0;
+            SourceStream<int> source = SourceStream<int>.CountStream(1, length);
+            IStream<int> stream = source.Take((vs) => vs[0] + vs[1] + vs[2], 3)
+                .BindResult(c => sum += c);
+            SetupException(stream);
+            stream.Start();
+            Assert.AreEqual((1 + 2 + 3) + (2 + 3 + 4), sum, "Take stream should have expected sum of all consecutive triples of [1,2,3,4].");
         }
 
         #endregion
@@ -249,6 +289,7 @@ namespace BassClefStudio.AppModel.Tests
             SourceStream<string> source = new SourceStream<string>();
             string value = null;
             source.BindResult(s => value = s);
+            SetupException(source);
             source.Start();
             Assert.AreEqual(null, value, "SourceStream unintentionally emitted a value.");
         }
@@ -259,12 +300,18 @@ namespace BassClefStudio.AppModel.Tests
             SourceStream<string> source = new SourceStream<string>("hello", "world!");
             string value = null;
             source.BindResult(s => value = s);
+            SetupException(source);
             source.Start();
             Assert.IsNotNull(value, "SourceStream failed to emit a value.");
             Assert.AreEqual("world!", value, "SourceStream's last emitted value was unexpected.");
         }
 
         #endregion
+
+        private void SetupException<T>(IStream<T> stream)
+        {
+            stream.BindError(e => throw e);
+        }
     }
 
     class MyClass : Observable
