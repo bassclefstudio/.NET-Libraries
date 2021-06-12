@@ -17,7 +17,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <summary>
         /// The previously emitted value from <see cref="ParentStream"/>.
         /// </summary>
-        private Queue<T1> PreviousValues { get; set; }
+        private Stack<T1> PreviousValues { get; set; }
 
         /// <summary>
         /// The <see cref="int"/> number of items from the <see cref="ParentStream"/> that should be queued before/when making calls to the <see cref="ProduceFunc"/> is called to create <typeparamref name="T2"/> values.
@@ -57,7 +57,7 @@ namespace BassClefStudio.NET.Core.Streams
             if (!Started)
             {
                 Started = true;
-                PreviousValues = new Queue<T1>();
+                PreviousValues = new Stack<T1>();
                 ParentStream.ValueEmitted.AddAction(ParentValueEmitted);
                 ParentStream.Start();
             }
@@ -77,10 +77,10 @@ namespace BassClefStudio.NET.Core.Streams
             {
                 try
                 {
-                    PreviousValues.Enqueue(e.Result);
+                    PreviousValues.Push(e.Result);
                     if (PreviousValues.Count > TakeLength)
                     {
-                        PreviousValues.Dequeue();
+                        PreviousValues.Pop();
                     }
 
                     if (PreviousValues.Count == TakeLength)
