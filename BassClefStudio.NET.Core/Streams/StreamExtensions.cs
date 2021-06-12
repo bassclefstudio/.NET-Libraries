@@ -319,6 +319,24 @@ namespace BassClefStudio.NET.Core.Streams
         }
 
         /// <summary>
+        /// Binds the incoming <typeparamref name="T"/> results from an <see cref="IStream{T}"/> to a given asynchronous <see cref="Task"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of values emitted by this <see cref="IStream{T}"/>.</typeparam>
+        /// <param name="stream">The <see cref="IStream{T}"/> stream to bind to.</param>
+        /// <param name="action">An action that takes in an input <typeparamref name="T"/> value and will be executed every time the <paramref name="stream"/> emits a value of <see cref="StreamValueType.Result"/>.</param>
+        /// <returns>The input <see cref="IStream{T}"/> <paramref name="stream"/>.</returns>
+        public static IStream<T> BindResult<T>(this IStream<T> stream, Func<T, Task> action)
+        {
+            async Task<T> RunReturn(T input)
+            {
+                await action(input);
+                return input;
+            }
+
+            return stream.Select(RunReturn);
+        }
+
+        /// <summary>
         /// Binds any incoming <see cref="Exception"/>s from an <see cref="IStream{T}"/> to a given <see cref="Action{T}"/>.
         /// </summary>
         /// <typeparam name="T">The type of values emitted by this <see cref="IStream{T}"/>.</typeparam>
