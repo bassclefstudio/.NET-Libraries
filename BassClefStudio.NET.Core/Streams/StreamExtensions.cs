@@ -305,8 +305,9 @@ namespace BassClefStudio.NET.Core.Streams
         /// <typeparam name="T">The type of values emitted by this <see cref="IStream{T}"/>.</typeparam>
         /// <param name="stream">The <see cref="IStream{T}"/> stream to bind to.</param>
         /// <param name="action">An action that takes in an input <typeparamref name="T"/> value and will be executed every time the <paramref name="stream"/> emits a value of <see cref="StreamValueType.Result"/>.</param>
+        /// <param name="start">A <see cref="bool"/> indicating whether the <see cref="IStream{T}"/> should be automatically started.</param>
         /// <returns>The input <see cref="IStream{T}"/> <paramref name="stream"/>.</returns>
-        public static IStream<T> BindResult<T>(this IStream<T> stream, Action<T> action)
+        public static IStream<T> BindResult<T>(this IStream<T> stream, Action<T> action, bool start = true)
         {
             stream.ValueEmitted.AddAction(e =>
                 {
@@ -315,6 +316,11 @@ namespace BassClefStudio.NET.Core.Streams
                         action(e.Result);
                     }
                 });
+
+            if(start)
+            {
+                stream.Start();
+            }
             return stream;
         }
 
@@ -324,8 +330,9 @@ namespace BassClefStudio.NET.Core.Streams
         /// <typeparam name="T">The type of values emitted by this <see cref="IStream{T}"/>.</typeparam>
         /// <param name="stream">The <see cref="IStream{T}"/> stream to bind to.</param>
         /// <param name="action">An action that takes in an input <typeparamref name="T"/> value and will be executed every time the <paramref name="stream"/> emits a value of <see cref="StreamValueType.Result"/>.</param>
+        /// <param name="start">A <see cref="bool"/> indicating whether the <see cref="IStream{T}"/> should be automatically started.</param>
         /// <returns>The input <see cref="IStream{T}"/> <paramref name="stream"/>.</returns>
-        public static IStream<T> BindResult<T>(this IStream<T> stream, Func<T, Task> action)
+        public static IStream<T> BindResult<T>(this IStream<T> stream, Func<T, Task> action, bool start = true)
         {
             async Task<T> RunReturn(T input)
             {
@@ -333,7 +340,12 @@ namespace BassClefStudio.NET.Core.Streams
                 return input;
             }
 
-            return stream.Select(RunReturn);
+            IStream<T> newStream = stream.Select(RunReturn);
+            if (start)
+            {
+                newStream.Start();
+            }
+            return newStream;
         }
 
         /// <summary>
