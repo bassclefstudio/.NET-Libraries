@@ -17,13 +17,14 @@ namespace BassClefStudio.NET.Core.Streams
         public bool Started { get; private set; } = false;
 
         /// <inheritdoc/>
-        public event EventHandler<StreamValue<T>> ValueEmitted;
+        public StreamBinding<T> ValueEmitted { get; }
 
         /// <summary>
         /// Creates an empty <see cref="SourceStream{T}"/>.
         /// </summary>
         public SourceStream()
         {
+            ValueEmitted = new StreamBinding<T>();
             StartInputs = Array.Empty<StreamValue<T>>();
         }
 
@@ -38,6 +39,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="inputs">A collection of <see cref="StreamValue{T}"/> inputs that will be sent onto the <see cref="SourceStream{T}"/> when <see cref="IStream{T}.Start"/> is called.</param>
         public SourceStream(IEnumerable<StreamValue<T>> inputs)
         {
+            ValueEmitted = new StreamBinding<T>();
             StartInputs = inputs;
         }
 
@@ -47,6 +49,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="inputs">A collection of <see cref="StreamValue{T}"/> inputs that will be sent onto the <see cref="SourceStream{T}"/> when <see cref="IStream{T}.Start"/> is called.</param>
         public SourceStream(params StreamValue<T>[] inputs)
         {
+            ValueEmitted = new StreamBinding<T>();
             StartInputs = inputs;
         }
 
@@ -56,6 +59,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="inputs">A collection of <typeparamref name="T"/> inputs that will be sent onto the <see cref="SourceStream{T}"/> when <see cref="IStream{T}.Start"/> is called.</param>
         public SourceStream(IEnumerable<T> inputs)
         {
+            ValueEmitted = new StreamBinding<T>();
             StartInputs = inputs.Select(t => new StreamValue<T>(t));
         }
 
@@ -65,6 +69,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="inputs">A collection of <typeparamref name="T"/> inputs that will be sent onto the <see cref="SourceStream{T}"/> when <see cref="IStream{T}.Start"/> is called.</param>
         public SourceStream(params T[] inputs)
         {
+            ValueEmitted = new StreamBinding<T>();
             StartInputs = inputs.Select(t => new StreamValue<T>(t));
         }
 
@@ -106,7 +111,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="input">The pertinent <typeparamref name="T"/> value.</param>
         public void EmitValue(StreamValue<T> input)
         {
-            ValueEmitted?.Invoke(this, input);
+            ValueEmitted.EmitValue(input);
         }
 
         /// <summary>
@@ -127,7 +132,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="input">The pertinent <typeparamref name="T"/> value.</param>
         public void EmitValue(T input)
         {
-            ValueEmitted?.Invoke(this, new StreamValue<T>(input));
+            ValueEmitted.EmitValue(new StreamValue<T>(input));
         }
 
         /// <summary>
@@ -148,7 +153,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="ex">The <see cref="Exception"/> describing the error.</param>
         public void ThrowError(Exception ex)
         {
-            ValueEmitted?.Invoke(this, new StreamValue<T>(ex));
+            ValueEmitted.EmitValue(new StreamValue<T>(ex));
         }
 
         /// <summary>
@@ -156,7 +161,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// </summary>
         public void Complete()
         {
-            ValueEmitted?.Invoke(this, new StreamValue<T>());
+            ValueEmitted.EmitValue(new StreamValue<T>());
         }
     }
 }

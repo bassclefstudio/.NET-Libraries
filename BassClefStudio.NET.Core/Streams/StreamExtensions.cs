@@ -303,79 +303,49 @@ namespace BassClefStudio.NET.Core.Streams
         /// Binds the incoming <typeparamref name="T"/> results from an <see cref="IStream{T}"/> to a given <see cref="Action{T}"/>.
         /// </summary>
         /// <typeparam name="T">The type of values emitted by this <see cref="IStream{T}"/>.</typeparam>
-        /// <typeparam name="TStream">The type of <see cref="IStream{T}"/> being bound to.</typeparam>
         /// <param name="stream">The <see cref="IStream{T}"/> stream to bind to.</param>
         /// <param name="action">An action that takes in an input <typeparamref name="T"/> value and will be executed every time the <paramref name="stream"/> emits a value of <see cref="StreamValueType.Result"/>.</param>
+        /// <param name="start">A <see cref="bool"/> indicating whether the <see cref="IStream{T}"/> should be automatically started.</param>
         /// <returns>The input <see cref="IStream{T}"/> <paramref name="stream"/>.</returns>
-        public static TStream BindResult<T, TStream>(this TStream stream, Action<T> action) where TStream : IStream<T>
+        public static IStream<T> BindResult<T>(this IStream<T> stream, Action<T> action, bool start = true)
         {
-            stream.ValueEmitted += (s, e) =>
-            {
-                if(e.DataType == StreamValueType.Result)
+            stream.ValueEmitted.AddAction(e =>
                 {
-                    action(e.Result);
-                }
-            };
+                    if (e.DataType == StreamValueType.Result)
+                    {
+                        action(e.Result);
+                    }
+                });
+
+            if(start)
+            {
+                stream.Start();
+            }
             return stream;
         }
 
         /// <summary>
-        /// Binds any incoming <see cref="Exception"/>s from an <see cref="IStream{T}"/> to a given <see cref="Action{T}"/>.
-        /// </summary>
-        /// <typeparam name="T">The type of values emitted by this <see cref="IStream{T}"/>.</typeparam>
-        /// <typeparam name="TStream">The type of <see cref="IStream{T}"/> being bound to.</typeparam>
-        /// <param name="stream">The <see cref="IStream{T}"/> stream to bind to.</param>
-        /// <param name="action">An action that takes in an input <see cref="Exception"/> and will be executed every time the <paramref name="stream"/> emits a value of <see cref="StreamValueType.Error"/>.</param>
-        /// <returns>The input <see cref="IStream{T}"/> <paramref name="stream"/>.</returns>
-        public static TStream BindError<T, TStream>(this TStream stream, Action<Exception> action) where TStream : IStream<T>
-        {
-            stream.ValueEmitted += (s, e) =>
-            {
-                if (e.DataType == StreamValueType.Error)
-                {
-                    action(e.Error);
-                }
-            };
-            return stream;
-        }
-
-        /// <summary>
-        /// Binds the completion of an <see cref="IStream{T}"/> to a given <see cref="Action"/>.
-        /// </summary>
-        /// <typeparam name="T">The type of values emitted by this <see cref="IStream{T}"/>.</typeparam>
-        /// <typeparam name="TStream">The type of <see cref="IStream{T}"/> being bound to.</typeparam>
-        /// <param name="stream">The <see cref="IStream{T}"/> stream to bind to.</param>
-        /// <param name="action">An action that will be executed every time the <paramref name="stream"/> emits a value of <see cref="StreamValueType.Completed"/>.</param>
-        /// <returns>The input <see cref="IStream{T}"/> <paramref name="stream"/>.</returns>
-        public static TStream BindComplete<T, TStream>(this TStream stream, Action action) where TStream : IStream<T>
-        {
-            stream.ValueEmitted += (s, e) =>
-            {
-                if (e.DataType == StreamValueType.Completed)
-                {
-                    action();
-                }
-            };
-            return stream;
-        }
-
-        /// <summary>
-        /// Binds the incoming <typeparamref name="T"/> results from an <see cref="IStream{T}"/> to a given <see cref="Action{T}"/>.
+        /// Binds the incoming <typeparamref name="T"/> results from an <see cref="IStream{T}"/> to a given asynchronous <see cref="Task"/>.
         /// </summary>
         /// <typeparam name="T">The type of values emitted by this <see cref="IStream{T}"/>.</typeparam>
         /// <param name="stream">The <see cref="IStream{T}"/> stream to bind to.</param>
         /// <param name="action">An action that takes in an input <typeparamref name="T"/> value and will be executed every time the <paramref name="stream"/> emits a value of <see cref="StreamValueType.Result"/>.</param>
+        /// <param name="start">A <see cref="bool"/> indicating whether the <see cref="IStream{T}"/> should be automatically started.</param>
         /// <returns>The input <see cref="IStream{T}"/> <paramref name="stream"/>.</returns>
-        public static IStream<T> BindResult<T>(this IStream<T> stream, Action<T> action)
+        public static IStream<T> BindResult<T>(this IStream<T> stream, Func<T, Task> action, bool start = true)
         {
-            stream.ValueEmitted += (s, e) =>
+            async Task<T> RunReturn(T input)
             {
-                if (e.DataType == StreamValueType.Result)
-                {
-                    action(e.Result);
-                }
-            };
-            return stream;
+                await action(input);
+                return input;
+            }
+
+            IStream<T> newStream = stream.Select(RunReturn);
+            if (start)
+            {
+                newStream.Start();
+            }
+            return newStream;
         }
 
         /// <summary>
@@ -387,13 +357,13 @@ namespace BassClefStudio.NET.Core.Streams
         /// <returns>The input <see cref="IStream{T}"/> <paramref name="stream"/>.</returns>
         public static IStream<T> BindError<T>(this IStream<T> stream, Action<Exception> action)
         {
-            stream.ValueEmitted += (s, e) =>
-            {
-                if (e.DataType == StreamValueType.Error)
+            stream.ValueEmitted.AddAction(e =>
                 {
-                    action(e.Error);
-                }
-            };
+                    if (e.DataType == StreamValueType.Error)
+                    {
+                        action(e.Error);
+                    }
+                });
             return stream;
         }
 
@@ -406,13 +376,13 @@ namespace BassClefStudio.NET.Core.Streams
         /// <returns>The input <see cref="IStream{T}"/> <paramref name="stream"/>.</returns>
         public static IStream<T> BindComplete<T>(this IStream<T> stream, Action action)
         {
-            stream.ValueEmitted += (s, e) =>
-            {
-                if (e.DataType == StreamValueType.Completed)
+            stream.ValueEmitted.AddAction(e =>
                 {
-                    action();
-                }
-            };
+                    if (e.DataType == StreamValueType.Completed)
+                    {
+                        action();
+                    }
+                });
             return stream;
         }
 

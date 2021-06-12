@@ -20,7 +20,7 @@ namespace BassClefStudio.NET.Core.Streams
         public IStream<T>[] ParentStreams { get; }
 
         /// <inheritdoc/>
-        public event EventHandler<StreamValue<T>> ValueEmitted;
+        public StreamBinding<T> ValueEmitted { get; }
 
         /// <summary>
         /// Creates a new <see cref="ConcatStream{T}"/>.
@@ -28,6 +28,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="parents">A collection of <see cref="IStream{T}"/> parent streams, from which emitted values are passed to the <see cref="ConcatStream{T}"/>.</param>
         public ConcatStream(params IStream<T>[] parents)
         {
+            ValueEmitted = new StreamBinding<T>();
             ParentStreams = parents;
         }
 
@@ -37,6 +38,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="parents">A collection of <see cref="IStream{T}"/> parent streams, from which emitted values are passed to the <see cref="ConcatStream{T}"/>.</param>
         public ConcatStream(IEnumerable<IStream<T>> parents)
         {
+            ValueEmitted = new StreamBinding<T>();
             ParentStreams = parents.ToArray();
         }
 
@@ -48,7 +50,7 @@ namespace BassClefStudio.NET.Core.Streams
                 Started = true;
                 foreach (var p in ParentStreams)
                 {
-                    p.ValueEmitted += ParentValueEmitted;
+                    p.ValueEmitted.AddAction(ParentValueEmitted);
                 }
 
                 foreach (var p in ParentStreams)
@@ -58,9 +60,9 @@ namespace BassClefStudio.NET.Core.Streams
             }
         }
 
-        private void ParentValueEmitted(object sender, StreamValue<T> e)
+        private void ParentValueEmitted(StreamValue<T> e)
         {
-            ValueEmitted?.Invoke(this, e);
+            ValueEmitted.EmitValue(e);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace BassClefStudio.NET.Core.Streams
         public bool Started { get; private set; } = false;
 
         /// <inheritdoc/>
-        public event EventHandler<StreamValue<T>> ValueEmitted;
+        public StreamBinding<T> ValueEmitted { get; }
 
         /// <summary>
         /// The parent <see cref="IStream{T}"/> this <see cref="FilterStream{T}"/> will filter.
@@ -34,6 +34,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="filter">A function that returns a <see cref="bool"/> for each <typeparamref name="T"/> input indicating whether it should propogate onto this stream.</param>
         public FilterStream(IStream<T> parent, Func<T, bool> filter)
         {
+            ValueEmitted = new StreamBinding<T>();
             ParentStream = parent;
             Filter = filter;
         }
@@ -44,12 +45,12 @@ namespace BassClefStudio.NET.Core.Streams
             if (!Started)
             {
                 Started = true;
-                ParentStream.ValueEmitted += ParentValueEmitted;
+                ParentStream.ValueEmitted.AddAction(ParentValueEmitted);
                 ParentStream.Start();
             }
         }
 
-        private void ParentValueEmitted(object sender, StreamValue<T> value)
+        private void ParentValueEmitted(StreamValue<T> value)
         {
             if (value.DataType == StreamValueType.Result)
             {
@@ -57,17 +58,17 @@ namespace BassClefStudio.NET.Core.Streams
                 {
                     if (Filter(value.Result))
                     {
-                        ValueEmitted?.Invoke(this, value);
+                        ValueEmitted.EmitValue(value);
                     }
                 }
                 catch(Exception ex)
                 {
-                    ValueEmitted?.Invoke(this, new StreamValue<T>(ex));
+                    ValueEmitted.EmitValue(new StreamValue<T>(ex));
                 }
             }
             else
             {
-                ValueEmitted?.Invoke(this, value);
+                ValueEmitted.EmitValue(value);
             }
         }
     }

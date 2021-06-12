@@ -35,7 +35,7 @@ namespace BassClefStudio.NET.Core.Streams
         public IStream<T1> ParentStream { get; }
 
         /// <inheritdoc/>
-        public event EventHandler<StreamValue<T2>> ValueEmitted;
+        public StreamBinding<T2> ValueEmitted { get; }
 
         /// <summary>
         /// Creates a new <see cref="DistinctStream{T}"/>.
@@ -45,6 +45,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="takeLength">The <see cref="int"/> number of items from the <see cref="ParentStream"/> that should be queued before/when making calls to the <see cref="ProduceFunc"/> is called to create <typeparamref name="T2"/> values.</param>
         public TakeStream(IStream<T1> parentStream, Func<T1[], T2> produceFunc, int takeLength = 2)
         {
+            ValueEmitted = new StreamBinding<T2>();
             ParentStream = parentStream;
             ProduceFunc = produceFunc;
             TakeLength = takeLength;
@@ -57,20 +58,20 @@ namespace BassClefStudio.NET.Core.Streams
             {
                 Started = true;
                 PreviousValues = new Queue<T1>();
-                ParentStream.ValueEmitted += ParentValueEmitted;
+                ParentStream.ValueEmitted.AddAction(ParentValueEmitted);
                 ParentStream.Start();
             }
         }
 
-        private void ParentValueEmitted(object sender, StreamValue<T1> e)
+        private void ParentValueEmitted(StreamValue<T1> e)
         {
             if (e.DataType == StreamValueType.Completed)
             {
-                ValueEmitted?.Invoke(this, new StreamValue<T2>());
+                ValueEmitted.EmitValue(new StreamValue<T2>());
             }
             else if (e.DataType == StreamValueType.Error)
             {
-                ValueEmitted?.Invoke(this, new StreamValue<T2>(e.Error));
+                ValueEmitted.EmitValue(new StreamValue<T2>(e.Error));
             }
             else if (e.DataType == StreamValueType.Result)
             {
@@ -84,12 +85,12 @@ namespace BassClefStudio.NET.Core.Streams
 
                     if (PreviousValues.Count == TakeLength)
                     {
-                        ValueEmitted?.Invoke(this, new StreamValue<T2>(ProduceFunc(PreviousValues.ToArray())));
+                        ValueEmitted.EmitValue(new StreamValue<T2>(ProduceFunc(PreviousValues.ToArray())));
                     }
                 }
                 catch (Exception ex)
                 {
-                    ValueEmitted?.Invoke(this, new StreamValue<T2>(ex));
+                    ValueEmitted.EmitValue(new StreamValue<T2>(ex));
                 }
             }
         }

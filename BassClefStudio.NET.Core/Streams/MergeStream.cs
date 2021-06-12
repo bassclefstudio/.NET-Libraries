@@ -26,7 +26,7 @@ namespace BassClefStudio.NET.Core.Streams
         public Func<T1[], T2> TransformFunc { get; }
 
         /// <inheritdoc/>
-        public event EventHandler<StreamValue<T2>> ValueEmitted;
+        public StreamBinding<T2> ValueEmitted { get; }
 
         /// <summary>
         /// Creates a new <see cref="MergeStream{T1, T2}"/>.
@@ -35,6 +35,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="transformFunc">A <see cref="Func{T, TResult}"/> that produces a <typeparamref name="T2"/> result from the most recent <typeparamref name="T1"/> values produced by each of the <see cref="ParentStreams"/>.</param>
         public MergeStream(Func<T1[], T2> transformFunc, params IStream<T1>[] parents)
         {
+            ValueEmitted = new StreamBinding<T2>();
             TransformFunc = transformFunc;
             ParentStreams = parents;
         }
@@ -46,6 +47,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="transformFunc">A <see cref="Func{T, TResult}"/> that produces a <typeparamref name="T2"/> result from the most recent <typeparamref name="T1"/> values produced by each of the <see cref="ParentStreams"/>.</param>
         public MergeStream(Func<T1[], T2> transformFunc, IEnumerable<IStream<T1>> parents)
         {
+            ValueEmitted = new StreamBinding<T2>();
             TransformFunc = transformFunc;
             ParentStreams = parents.ToArray();
         }
@@ -60,7 +62,7 @@ namespace BassClefStudio.NET.Core.Streams
                 for (int i = 0; i < ParentStreams.Length; i++)
                 {
                     CachedValues[i] = default(T1);
-                    ParentStreams[i].ValueEmitted += (s, e) => ParentValueEmitted(s as IStream<T1>, e);
+                    ParentStreams[i].ValueEmitted.AddAction(CreateParentAction(i));
                 }
 
                 foreach (var parent in ParentStreams)
@@ -71,9 +73,7 @@ namespace BassClefStudio.NET.Core.Streams
         }
 
         private T1[] CachedValues { get; set; }
-
-        private void ParentValueEmitted(IStream<T1> parent, StreamValue<T1> e)
-            => ParentValueEmitted(Array.IndexOf(ParentStreams, parent), e);
+        private Action<StreamValue<T1>> CreateParentAction(int index) => e => ParentValueEmitted(index, e);
         private void ParentValueEmitted(int index, StreamValue<T1> e)
         {
             if (e.DataType == StreamValueType.Result)
@@ -82,21 +82,21 @@ namespace BassClefStudio.NET.Core.Streams
                 {
                     CachedValues[index] = e.Result;
                     var output = TransformFunc(CachedValues);
-                    ValueEmitted?.Invoke(this, new StreamValue<T2>(output));
+                    ValueEmitted.EmitValue(new StreamValue<T2>(output));
                 }
                 catch(Exception ex)
                 {
-                    ValueEmitted?.Invoke(this, new StreamValue<T2>(ex));
+                    ValueEmitted.EmitValue(new StreamValue<T2>(ex));
                 }
             }
             else if(e.DataType == StreamValueType.Completed)
             {
-                ValueEmitted?.Invoke(this, new StreamValue<T2>());
+                ValueEmitted.EmitValue(new StreamValue<T2>());
                 CachedValues[index] = default(T1);
             }
             else if(e.DataType == StreamValueType.Error)
             {
-                ValueEmitted?.Invoke(this, new StreamValue<T2>(e.Error));
+                ValueEmitted.EmitValue(new StreamValue<T2>(e.Error));
                 CachedValues[index] = default(T1);
             }
         }
