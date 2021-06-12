@@ -17,9 +17,9 @@ namespace BassClefStudio.NET.Core.Streams
         bool Started { get; }
 
         /// <summary>
-        /// An event produced by the <see cref="IStream{T}"/> every time a new value is available.
+        /// A <see cref="StreamBinding{T}"/> managed by the <see cref="IStream{T}"/> and triggered every time a new value is emitted.
         /// </summary>
-        event EventHandler<StreamValue<T>> ValueEmitted;
+        StreamBinding<T> ValueEmitted { get; }
 
         /// <summary>
         /// If this <see cref="IStream{T}"/> contains data that is ready to be emitted, this will start the <see cref="IStream{T}"/>. Call this method after all binding and transformations to desired <see cref="IStream{T}"/>s have occurred.
@@ -28,93 +28,65 @@ namespace BassClefStudio.NET.Core.Streams
     }
 
     /// <summary>
-    /// A struct that provides some value of type <typeparamref name="T"/> if successful, else contains information about the error that occurred.
+    /// Represents a more open pub/sub binding which <see cref="IStream{T}"/>s call when they emit values.
     /// </summary>
-    /// <typeparam name="T">The type of value this <see cref="StreamValue{T}"/> could encapsulate.</typeparam>
-    public struct StreamValue<T>
+    /// <typeparam name="T">The type of <see cref="StreamValue{T}"/> values this <see cref="StreamBinding{T}"/> handles.</typeparam>
+    public class StreamBinding<T>
     {
         /// <summary>
-        /// A <see cref="StreamValueType"/> indicating what type of result this <see cref="StreamValue{T}"/> encapsulates.
+        /// The keyed collection of <see cref="Action{T}"/>s to take when a new <see cref="StreamValue{T}"/> is emitted.
         /// </summary>
-        public StreamValueType DataType { get; private set; }
+        public Dictionary<string, Action<StreamValue<T>>> Actions { get; }
 
-        private T result;
         /// <summary>
-        /// The <typeparamref name="T"/> result, if <see cref="DataType"/> is set to <see cref="StreamValueType.Result"/> true.
+        /// Creates a new empty <see cref="StreamBinding{T}"/>.
         /// </summary>
-        public T Result
+        public StreamBinding()
         {
-            get
+            Actions = new Dictionary<string, Action<StreamValue<T>>>();
+        }
+
+        /// <summary>
+        /// Adds a new action with the given key to the bound <see cref="Actions"/>.
+        /// </summary>
+        /// <param name="key">The <see cref="string"/> key of the action in the <see cref="Actions"/> collection.</param>
+        /// <param name="action">The action to take when a <see cref="StreamValue{T}"/> is received.</param>
+        public void AddAction(string key, Action<StreamValue<T>> action)
+        {
+            Actions.Add(key, action);
+        }
+
+        /// <summary>
+        /// Adds a new action with a <see cref="Guid"/> key to the bound <see cref="Actions"/>.
+        /// </summary>
+        /// <param name="action">The action to take when a <see cref="StreamValue{T}"/> is received.</param>
+        /// <returns>The <see cref="string"/> form of the GUID key.</returns>
+        public string AddAction(Action<StreamValue<T>> action)
+        {
+            string key = Guid.NewGuid().ToString();
+            Actions.Add(key, action);
+            return key;
+        }
+
+        /// <summary>
+        /// Removes the action with the given key from the <see cref="Actions"/> collection.
+        /// </summary>
+        /// <param name="key">The <see cref="string"/> key of the action in the <see cref="Actions"/> collection.</param>
+        public void RemoveAction(string key)
+        {
+            Actions.Remove(key);
+        }
+
+        /// <summary>
+        /// Internally called by <see cref="IStream{T}"/>s - emits a <see cref="StreamValue{T}"/> and calls all the relevant <see cref="Actions"/>.
+        /// </summary>
+        /// <param name="value">The <see cref="StreamValue{T}"/> value to emit.</param>
+        public void EmitValue(StreamValue<T> value)
+        {
+            foreach (var a in Actions)
             {
-                if(DataType == StreamValueType.Result)
-                {
-                    return result;
-                }
-                else
-                {
-                    throw new InvalidOperationException("Cannot retrieve the value of Maybe<T>.Result if DataType is not 'Result'.");
-                }
+                a.Value(value);
             }
         }
-
-        private Exception error;
-        /// <summary>
-        /// If <see cref="DataType"/> is set to <see cref="StreamValueType.Error"/>, contains the information about the <see cref="Exception"/> that was thrown.
-        /// </summary>
-        public Exception Error
-        {
-            get
-            {
-                if (DataType == StreamValueType.Error)
-                {
-                    return error;
-                }
-                else
-                {
-                    throw new InvalidOperationException("Cannot retrieve the value of Maybe<T>.Error if DataType is not 'Error'.");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Creates a successful <see cref="StreamValue{T}"/> object that contains a <see cref="Result"/>.
-        /// </summary>
-        /// <param name="value">The <typeparamref name="T"/> result.</param>
-        public StreamValue(T value)
-        {
-            DataType = StreamValueType.Result;
-            result = value;
-            error = null;
-        }
-
-        /// <summary>
-        /// Creates a failed <see cref="StreamValue{T}"/> object that provides <see cref="Exception"/> information.
-        /// </summary>
-        /// <param name="ex">The <see cref="Exception"/> that was thrown.</param>
-        public StreamValue(Exception ex)
-        {
-            DataType = StreamValueType.Error;
-            result = default(T);
-            error = ex;
-        }
-    }
-
-    /// <summary>
-    /// For a <see cref="StreamValue{T}"/> produced by an <see cref="IStream{T}"/>, indicates the type of data being sent.
-    /// </summary>
-    public enum StreamValueType
-    {
-        /// <summary>
-        /// The default type contains no value or error, and simply indicates the <see cref="IStream{T}"/> has completed producing values.
-        /// </summary>
-        Completed = 0,
-        /// <summary>
-        /// This <see cref="StreamValue{T}"/> will contain a value as its <see cref="StreamValue{T}.Result"/>.
-        /// </summary>
-        Result = 1,
-        /// <summary>
-        /// An error occurred, and information can be found in <see cref="StreamValue{T}.Error"/>.
-        /// </summary>
-        Error = 2
     }
 }

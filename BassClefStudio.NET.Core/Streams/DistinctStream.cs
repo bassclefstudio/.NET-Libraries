@@ -29,7 +29,7 @@ namespace BassClefStudio.NET.Core.Streams
         public IStream<T> ParentStream { get; }
 
         /// <inheritdoc/>
-        public event EventHandler<StreamValue<T>> ValueEmitted;
+        public StreamBinding<T> ValueEmitted { get; }
 
         /// <summary>
         /// Creates a new <see cref="DistinctStream{T}"/>.
@@ -38,6 +38,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="includeFunc">A <see cref="Func{T1, T2, TResult}"/> that takes in the incoming and previous <typeparamref name="T"/> inputs and returns a <see cref="bool"/> indicating whether the incoming value should be emitted.</param>
         public DistinctStream(IStream<T> parentStream, Func<T, T, bool> includeFunc)
         {
+            ValueEmitted = new StreamBinding<T>();
             ParentStream = parentStream;
             IncludeFunc = includeFunc;
         }
@@ -49,20 +50,20 @@ namespace BassClefStudio.NET.Core.Streams
             {
                 Started = true;
                 PreviousValue = default(T);
-                ParentStream.ValueEmitted += ParentValueEmitted;
+                ParentStream.ValueEmitted.AddAction(ParentValueEmitted);
                 ParentStream.Start();
             }
         }
 
-        private void ParentValueEmitted(object sender, StreamValue<T> e)
+        private void ParentValueEmitted(StreamValue<T> e)
         {
             if (e.DataType == StreamValueType.Completed)
             {
-                ValueEmitted?.Invoke(this, new StreamValue<T>());
+                ValueEmitted.EmitValue(new StreamValue<T>());
             }
             else if (e.DataType == StreamValueType.Error)
             {
-                ValueEmitted?.Invoke(this, new StreamValue<T>(e.Error));
+                ValueEmitted.EmitValue(new StreamValue<T>(e.Error));
             }
             else if (e.DataType == StreamValueType.Result)
             {
@@ -70,13 +71,13 @@ namespace BassClefStudio.NET.Core.Streams
                 {
                     if (IncludeFunc(e.Result, PreviousValue))
                     {
-                        ValueEmitted?.Invoke(this, new StreamValue<T>(e.Result));
+                        ValueEmitted.EmitValue(new StreamValue<T>(e.Result));
                         PreviousValue = e.Result;
                     }
                 }
                 catch (Exception ex)
                 {
-                    ValueEmitted?.Invoke(this, new StreamValue<T>(ex));
+                    ValueEmitted.EmitValue(new StreamValue<T>(ex));
                 }
             }
         }

@@ -23,7 +23,7 @@ namespace BassClefStudio.NET.Core.Streams
         public IStream<T1> ParentStream { get; }
 
         /// <inheritdoc/>
-        public event EventHandler<StreamValue<T2>> ValueEmitted;
+        public StreamBinding<T2> ValueEmitted { get; }
 
         /// <summary>
         /// The <see cref="Timer"/> that this <see cref="BufferStream{T1,T2}"/> uses for buffering requests.
@@ -48,6 +48,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="bufferTime">A <see cref="TimeSpan"/> indicating the amount of time to buffer potential inputs.</param>
         public BufferStream(IStream<T1> parent, TimeSpan bufferTime, Func<IEnumerable<T1>, T2> bufferFunc)
         {
+            ValueEmitted = new StreamBinding<T2>();
             ParentStream = parent;
             BufferTime = bufferTime;
             BufferFunc = bufferFunc;
@@ -57,15 +58,15 @@ namespace BassClefStudio.NET.Core.Streams
 
         List<T1> bufferedItems = new List<T1>();
 
-        private void ParentValueEmitted(object sender, StreamValue<T1> e)
+        private void ParentValueEmitted(StreamValue<T1> e)
         {
             if(e.DataType == StreamValueType.Error)
             {
-                ValueEmitted?.Invoke(this, new StreamValue<T2>(e.Error));
+                ValueEmitted.EmitValue(new StreamValue<T2>(e.Error));
             }
             else if(e.DataType == StreamValueType.Completed)
             {
-                ValueEmitted?.Invoke(this, new StreamValue<T2>());
+                ValueEmitted.EmitValue(new StreamValue<T2>());
             }
             else if(e.DataType == StreamValueType.Result)
             {
@@ -82,11 +83,11 @@ namespace BassClefStudio.NET.Core.Streams
             try
             {
                 T2 result = BufferFunc(bufferedItems);
-                ValueEmitted?.Invoke(this, new StreamValue<T2>(result));
+                ValueEmitted.EmitValue(new StreamValue<T2>(result));
             }
             catch (Exception ex)
             {
-                ValueEmitted?.Invoke(this, new StreamValue<T2>(ex));
+                ValueEmitted.EmitValue(new StreamValue<T2>(ex));
             }
             BufferTimer.Stop();
         }
@@ -97,7 +98,7 @@ namespace BassClefStudio.NET.Core.Streams
             if (!Started)
             {
                 Started = true;
-                ParentStream.ValueEmitted += ParentValueEmitted;
+                ParentStream.ValueEmitted.AddAction(ParentValueEmitted);
                 ParentStream.Start();
             }
         }

@@ -17,7 +17,7 @@ namespace BassClefStudio.NET.Core.Streams
         public bool Started { get; private set; } = false;
 
         /// <inheritdoc/>
-        public event EventHandler<StreamValue<T2>> ValueEmitted;
+        public StreamBinding<T2> ValueEmitted { get; }
 
         /// <summary>
         /// The parent <see cref="IStream{T}"/> that produces parent objects.
@@ -63,7 +63,7 @@ namespace BassClefStudio.NET.Core.Streams
                     || !currentValue.Equals(value)))
                 {
                     currentValue = value;
-                    ValueEmitted?.Invoke(this, new StreamValue<T2>(currentValue));
+                    ValueEmitted.EmitValue(new StreamValue<T2>(currentValue));
                 }
             }
         }
@@ -86,6 +86,7 @@ namespace BassClefStudio.NET.Core.Streams
         /// <param name="propertyName">For debugging purposes, include the name of the property this <see cref="PropertyStream{T1, T2}"/> is connected to.</param>
         public PropertyStream(IStream<T1> parent, Func<T1, T2> getProperty, string propertyName = null)
         {
+            ValueEmitted = new StreamBinding<T2>();
             ParentStream = parent;
             GetProperty = getProperty;
             PropertyName = propertyName;
@@ -97,12 +98,12 @@ namespace BassClefStudio.NET.Core.Streams
             if (!Started)
             {
                 Started = true;
-                ParentStream.ValueEmitted += ParentValueEmitted;
+                ParentStream.ValueEmitted.AddAction(ParentValueEmitted);
                 ParentStream.Start();
             }
         }
 
-        private void ParentValueEmitted(object sender, StreamValue<T1> e)
+        private void ParentValueEmitted(StreamValue<T1> e)
         {
             if (e.DataType == StreamValueType.Result)
             {
@@ -110,7 +111,7 @@ namespace BassClefStudio.NET.Core.Streams
             }
             else if(e.DataType == StreamValueType.Error)
             {
-                ValueEmitted?.Invoke(this, new StreamValue<T2>(e.Error));
+                ValueEmitted.EmitValue(new StreamValue<T2>(e.Error));
             }
         }
 
