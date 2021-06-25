@@ -13,13 +13,19 @@ namespace BassClefStudio.NET.Core.Structures
     /// <typeparam name="TConnection">The type of <see cref="IConnection{T}"/> connections between <typeparamref name="TNode"/> nodes in the graph.</typeparam>
     public class Graph<TNode, TConnection> where TNode : INode where TConnection : IConnection<TNode>
     {
-        private ObservableCollection<TNode> nodes;
+        /// <summary>
+        /// The writable <see cref="Nodes"/> collection.
+        /// </summary>
+        protected ObservableCollection<TNode> nodes;
         /// <summary>
         /// The full collection of all <typeparamref name="TNode"/> nodes in the graph.
         /// </summary>
         public ReadOnlyObservableCollection<TNode> Nodes { get; }
 
-        private ObservableCollection<TConnection> connections;
+        /// <summary>
+        /// The writable <see cref="Connections"/> collection.
+        /// </summary>
+        protected ObservableCollection<TConnection> connections;
         /// <summary>
         /// The full collection of all <typeparamref name="TNode"/> nodes in the graph.
         /// </summary>
@@ -42,7 +48,7 @@ namespace BassClefStudio.NET.Core.Structures
         /// Adds a <see cref="IConnection{T}"/> and all its dependencies to the <see cref="Graph{TNode, TConnection}"/>.
         /// </summary>
         /// <param name="connection">The <typeparamref name="TConnection"/> connection to add.</param>
-        public void AddConnection(TConnection connection)
+        public virtual void AddConnection(TConnection connection)
         {
             if (!Nodes.Contains(connection.StartNode))
             {
@@ -61,7 +67,7 @@ namespace BassClefStudio.NET.Core.Structures
         /// Adds a <see cref="INode"/> and all its dependencies to the <see cref="Graph{TNode, TConnection}"/>.
         /// </summary>
         /// <param name="node">The <typeparamref name="TNode"/> node to add.</param>
-        public void AddNode(TNode node)
+        public virtual void AddNode(TNode node)
         {
             nodes.Add(node);
         }
@@ -70,7 +76,7 @@ namespace BassClefStudio.NET.Core.Structures
         /// Removes a <see cref="IConnection{T}"/> and any dependencies from the <see cref="Graph{TNode, TConnection}"/>.
         /// </summary>
         /// <param name="connection">The <typeparamref name="TConnection"/> connection to remove.</param>
-        public void RemoveConnection(TConnection connection)
+        public virtual void RemoveConnection(TConnection connection)
         {
             connections.Remove(connection);
         }
@@ -79,7 +85,7 @@ namespace BassClefStudio.NET.Core.Structures
         /// Removes a <see cref="INode"/> and any dependencies from the <see cref="Graph{TNode, TConnection}"/>.
         /// </summary>
         /// <param name="node">The <typeparamref name="TNode"/> node to remove.</param>
-        public void RemoveNode(TNode node)
+        public virtual void RemoveNode(TNode node)
         {
             nodes.Remove(node);
             foreach (var connection in connections.Where(l => l.StartNode.Equals(node) || l.EndNode.Equals(node)).ToArray())

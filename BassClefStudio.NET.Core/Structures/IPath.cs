@@ -50,5 +50,32 @@ namespace BassClefStudio.NET.Core.Structures
                 return false;
             }
         }
+
+        /// <summary>
+        /// Gets the <see cref="ConnectionMode"/> mode that can be applied to the given <see cref="IPath{TNode, TConnection}"/> as a whole.
+        /// </summary>
+        /// <typeparam name="TNode">The type of <see cref="INode"/> nodes this <see cref="IPath{TNode, TConnection}"/> links.</typeparam>
+        /// <typeparam name="TConnection">The type of <see cref="IConnection{T}"/> connections this <see cref="IPath{TNode, TConnection}"/> traverses.</typeparam>
+        /// <param name="path">The <see cref="IPath{TNode, TConnection}"/> path to check.</param>
+        /// <returns>A <see cref="ConnectionMode"/> indicating how the <paramref name="path"/> is traversable.</returns>
+        public static ConnectionMode GetConnectionMode<TNode, TConnection>(this IPath<TNode, TConnection> path) where TNode : INode where TConnection : IConnection<TNode>
+        {
+            if(path.Connections.All(c => c.Mode == ConnectionMode.Both))
+            {
+                return ConnectionMode.Both;
+            }
+            else if (path.Connections.All(c => c.Mode.HasFlag(ConnectionMode.Forwards)))
+            {
+                return ConnectionMode.Forwards;
+            }
+            else if (path.Connections.All(c => c.Mode.HasFlag(ConnectionMode.Backwards)))
+            {
+                return ConnectionMode.Backwards;
+            }
+            else
+            {
+                return ConnectionMode.Closed;
+            }
+        }
     }
 }
