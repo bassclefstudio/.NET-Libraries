@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BassClefStudio.AppModel.Tests
+namespace BassClefStudio.NET.Tests
 {
     [TestClass]
     public class StreamTests
