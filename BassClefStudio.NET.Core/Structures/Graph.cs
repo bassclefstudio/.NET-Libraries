@@ -24,7 +24,7 @@ namespace BassClefStudio.NET.Core.Structures
     /// </summary>
     /// <typeparam name="TNode">The type of <see cref="INode"/> nodes in the graph.</typeparam>
     /// <typeparam name="TConnection">The type of <see cref="IConnection{T}"/> connections between <typeparamref name="TNode"/> nodes in the graph.</typeparam>
-    public class Graph<TNode, TConnection> where TNode : INode where TConnection : IConnection<TNode>
+    public class Graph<TNode, TConnection> : Observable where TNode : INode where TConnection : IConnection<TNode>
     {
         /// <summary>
         /// The writable <see cref="Nodes"/> collection.
