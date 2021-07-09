@@ -23,7 +23,7 @@ namespace BassClefStudio.NET.Core.Structures
     /// </summary>
     /// <typeparam name="TNode">The type of <see cref="INode"/> nodes this <see cref="IPath{TNode, TConnection}"/> links.</typeparam>
     /// <typeparam name="TConnection">The type of <see cref="IConnection{T}"/> connections this <see cref="IPath{TNode, TConnection}"/> traverses.</typeparam>
-    public class Path<TNode, TConnection> : IPath<TNode, TConnection> where TNode : INode where TConnection : IConnection<TNode>
+    public class Path<TNode, TConnection> : Observable, IPath<TNode, TConnection> where TNode : INode where TConnection : IConnection<TNode>
     {
         /// <inheritdoc/>
         public IEnumerable<TConnection> Connections { get; }
@@ -88,6 +88,36 @@ namespace BassClefStudio.NET.Core.Structures
         /// <param name="start">The <typeparamref name="TNode"/> node this <see cref="IPath{TNode, TConnection}"/> starts at.</param>
         /// <param name="connections">The ordered collection of <typeparamref name="TConnection"/> connections that make up this contiguous <see cref="IPath{TNode, TConnection}"/>.</param>
         public Path(TNode start, params TConnection[] connections) : this(start, (IEnumerable<TConnection>)connections)
+        { }
+
+        /// <summary>
+        /// Creates a new <see cref="Path{TNode, TConnection}"/> and calculates <see cref="StartNode"/> and <see cref="EndNode"/> automatically.
+        /// </summary>
+        /// <param name="connections">The ordered collection of <typeparamref name="TConnection"/> connections that make up this contiguous <see cref="IPath{TNode, TConnection}"/>.</param>
+        public Path(IEnumerable<TConnection> connections)
+        {
+            Connections = connections;
+            if(!Connections.Any())
+            {
+                throw new ArgumentException("The connections collection must have at least one connection if no start or end is specified.", "connections");
+            }
+            else
+            {
+                StartNode = Connections.First().StartNode;
+                EndNode = this.FindEnd();
+                if (!this.Validate())
+                {
+                    throw new ArgumentException("The provided connections do not link the two nodes.", "connections");
+                }
+                Mode = this.GetConnectionMode();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="Path{TNode, TConnection}"/> and calculates <see cref="StartNode"/> and <see cref="EndNode"/> automatically.
+        /// </summary>
+        /// <param name="connections">The ordered collection of <typeparamref name="TConnection"/> connections that make up this contiguous <see cref="IPath{TNode, TConnection}"/>.</param>
+        public Path(params TConnection[] connections) : this((IEnumerable<TConnection>)connections)
         { }
     }
 

@@ -122,9 +122,18 @@ namespace BassClefStudio.NET.Tests
                 new Connection<Node>(nodes[3], nodes[4])
             };
 
-            Path<Node, Connection<Node>> path = new Path<Node, Connection<Node>>(nodes[0], connections);
-            Assert.AreEqual(nodes[4], path.EndNode, "Incorrect calculated end node.");
-            Assert.AreEqual(ConnectionMode.Forwards, path.GetConnectionMode(), "Incorrect calculated connection mode.");
+            Path<Node, Connection<Node>>[] paths = new Path<Node, Connection<Node>>[]
+            {
+                new Path<Node, Connection<Node>>(nodes[0], connections),
+                new Path<Node, Connection<Node>>(nodes[0], nodes[4], connections),
+                new Path<Node, Connection<Node>>(connections),
+            };
+
+            foreach (var path in paths)
+            {
+                Assert.AreEqual(nodes[4], path.EndNode, "Incorrect calculated end node.");
+                Assert.AreEqual(ConnectionMode.Forwards, path.GetConnectionMode(), "Incorrect calculated connection mode.");
+            }
         }
 
         [TestMethod]
